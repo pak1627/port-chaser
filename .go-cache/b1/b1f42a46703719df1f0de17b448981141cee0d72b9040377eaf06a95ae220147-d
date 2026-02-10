@@ -1,4 +1,0 @@
-covervars.go
-sqlite.cover.go
-storage.cover.go
-./sqlite_test.go

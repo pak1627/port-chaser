@@ -1,7 +1,0 @@
-covervars.go
-dialog.cover.go
-header.cover.go
-port_list.cover.go
-search.cover.go
-statusbar.cover.go
-./port_list_test.go
