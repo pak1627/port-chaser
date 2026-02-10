@@ -1,6 +1,6 @@
+//go:build windows
 // +build windows
 
-// Package process는 Windows용 프로세스 종료 구현을 제공합니다.
 package process
 
 import (
@@ -9,62 +9,62 @@ import (
 	"syscall"
 )
 
-// Process는 실행 중인 프로세스를 나타냅니다.
+// Process defines the interface for interacting with system processes on Windows.
+// This abstraction allows the killer to work with different process implementations.
 type Process interface {
-	// Signal은 프로세스에 신호를 전송합니다.
+	// Signal sends a signal to the process (SIGTERM or SIGKILL for termination)
 	Signal(sig syscall.Signal) error
-	// Release는 프로세스 리소스를 해제합니다.
+	// Release releases any resources associated with the process handle
 	Release() error
 }
 
-// windowsProcess는 Windows용 프로세스 래퍼입니다.
+// windowsProcess wraps the standard library's os.Process for Windows-specific behavior.
+// On Windows, signals work differently than POSIX systems.
 type windowsProcess struct {
 	*os.Process
 }
 
-// Signal은 Windows 프로세스에 신호를 전송합니다.
-// Windows는 SIGTERM/SIGKILL을 지원하지 않으므로 TerminateProcess를 사용합니다.
+// Signal sends a signal to the Windows process.
+// On Windows, SIGTERM and SIGKILL both map to process termination.
+// Signal 0 for existence checking is not supported on Windows.
 func (p *windowsProcess) Signal(sig syscall.Signal) error {
-	// Windows: syscall.SIGTERM (0xf)은 TerminateProcess로 매핑됨
-	// syscall.SIGKILL (0x9)도 동일하게 처리
 	if sig == syscall.SIGTERM || sig == syscall.SIGKILL {
 		return p.Terminate()
 	}
-	// 신호 0은 프로세스 존재 확인만 수행
 	return nil
 }
 
-// Terminate는 Windows 프로세스를 강제 종료합니다.
+// Terminate terminates the Windows process using the Windows API.
+// It attempts to use kernel32.dll's TerminateProcess function.
 func (p *windowsProcess) Terminate() error {
-	// Windows는 syscall.TerminateProcess를 직접 호출해야 함
 	dll, err := syscall.LoadDLL("kernel32.dll")
 	if err != nil {
-		return fmt.Errorf("kernel32.dll 로드 실패: %w", err)
+		return fmt.Errorf("kernel32.dll load failed: %w", err)
 	}
 	defer dll.Release()
 
 	proc, err := dll.FindProc("TerminateProcess")
 	if err != nil {
-		return fmt.Errorf("TerminateProcess 찾기 실패: %w", err)
+		return fmt.Errorf("TerminateProcess find failed: %w", err)
 	}
 
-	// TerminateProcess(handle, exitCode)
-	// 윈도우 핸들을 얻기 위해서는 추가 작업이 필요하지만,
-	// os.Process.Kill()이 내부적으로 TerminateProcess를 호출하므로
-	// 간단하게 Kill()을 사용합니다
+	// Note: The proc variable is unused but kept for potential future use
+	_ = proc
 	return p.Kill()
 }
 
-// Release는 프로세스 리소스를 해제합니다.
+// Release is a no-op for windowsProcess since os.Process doesn't require explicit cleanup.
+// This method exists to satisfy the Process interface.
 func (p *windowsProcess) Release() error {
 	return nil
 }
 
-// findProcessImpl은 Windows용 프로세스 찾기 구현입니다.
+// findProcessImpl is the Windows implementation of process finding.
+// It uses os.FindProcess which creates a Process object for the given PID.
 func findProcessImpl(pid int) (Process, error) {
 	process, err := os.FindProcess(pid)
 	if err != nil {
-		return nil, fmt.Errorf("프로세스 찾기 실패 (PID %d): %w", pid, err)
+		return nil, fmt.Errorf("find process failed (PID %d): %w", pid, err)
 	}
 	return &windowsProcess{Process: process}, nil
 }

@@ -1,4 +1,3 @@
-// Package platform에 대한 테스트입니다.
 package platform
 
 import (
@@ -6,25 +5,22 @@ import (
 	"testing"
 )
 
-// TestNewManager는 매니저 생성을 테스트합니다.
 func TestNewManager(t *testing.T) {
 	manager := NewManager()
 
 	if manager == nil {
-		t.Fatal("NewManager()는 nil을 반환하면 안 됩니다")
+		t.Fatal("NewManager() should not return nil")
 	}
 }
 
-// TestManager_GetOS는 OS 감지를 테스트합니다.
 func TestManager_GetOS(t *testing.T) {
 	manager := NewManager()
 
 	os := manager.GetOS()
 	if os == "" {
-		t.Error("GetOS()는 빈 문자열을 반환하면 안 됩니다")
+		t.Error("GetOS() should not return empty string")
 	}
 
-	// 유효한 OS 값인지 확인
 	validOS := map[string]bool{
 		"darwin":  true,
 		"linux":   true,
@@ -32,20 +28,18 @@ func TestManager_GetOS(t *testing.T) {
 	}
 
 	if !validOS[os] {
-		t.Errorf("GetOS() = %s, 유효하지 않은 OS입니다", os)
+		t.Errorf("GetOS() = %s, invalid OS", os)
 	}
 }
 
-// TestManager_GetArch는 아키텍처 감지를 테스트합니다.
 func TestManager_GetArch(t *testing.T) {
 	manager := NewManager()
 
 	arch := manager.GetArch()
 	if arch == "" {
-		t.Error("GetArch()는 빈 문자열을 반환하면 안 됩니다")
+		t.Error("GetArch() should not return empty string")
 	}
 
-	// 유효한 아키텍처 값인지 확인
 	validArch := map[string]bool{
 		"amd64": true,
 		"arm64": true,
@@ -54,57 +48,52 @@ func TestManager_GetArch(t *testing.T) {
 	}
 
 	if !validArch[arch] {
-		t.Errorf("GetArch() = %s, 유효하지 않은 아키텍처입니다", arch)
+		t.Errorf("GetArch() = %s, invalid architecture", arch)
 	}
 }
 
-// TestManager_IsDarwin은 macOS 감지를 테스트합니다.
 func TestManager_IsDarwin(t *testing.T) {
 	manager := NewManager()
 
 	isDarwin := manager.IsDarwin()
 
-	// 현재 플랫폼이 macOS인 경우에만 true여야 함
 	if manager.GetOS() == "darwin" && !isDarwin {
-		t.Error("macOS에서 IsDarwin()은 true여야 합니다")
+		t.Error("IsDarwin() should be true on macOS")
 	}
 
 	if manager.GetOS() != "darwin" && isDarwin {
-		t.Error("비 macOS에서 IsDarwin()은 false여야 합니다")
+		t.Error("IsDarwin() should be false on non-macOS")
 	}
 }
 
-// TestManager_IsLinux는 Linux 감지를 테스트합니다.
 func TestManager_IsLinux(t *testing.T) {
 	manager := NewManager()
 
 	isLinux := manager.IsLinux()
 
 	if manager.GetOS() == "linux" && !isLinux {
-		t.Error("Linux에서 IsLinux()은 true여야 합니다")
+		t.Error("IsLinux() should be true on Linux")
 	}
 
 	if manager.GetOS() != "linux" && isLinux {
-		t.Error("비 Linux에서 IsLinux()은 false여야 합니다")
+		t.Error("IsLinux() should be false on non-Linux")
 	}
 }
 
-// TestManager_IsWindows는 Windows 감지를 테스트합니다.
 func TestManager_IsWindows(t *testing.T) {
 	manager := NewManager()
 
 	isWindows := manager.IsWindows()
 
 	if manager.GetOS() == "windows" && !isWindows {
-		t.Error("Windows에서 IsWindows()는 true여야 합니다")
+		t.Error("IsWindows() should be true on Windows")
 	}
 
 	if manager.GetOS() != "windows" && isWindows {
-		t.Error("비 Windows에서 IsWindows()는 false여야 합니다")
+		t.Error("IsWindows() should be false on non-Windows")
 	}
 }
 
-// TestManager_SignalName은 시그널 이름 변환을 테스트합니다.
 func TestManager_SignalName(t *testing.T) {
 	manager := NewManager()
 
@@ -155,42 +144,37 @@ func TestManager_SignalName(t *testing.T) {
 	}
 }
 
-// TestManager_HomeDir은 홈 디렉토리 경로를 테스트합니다.
 func TestManager_HomeDir(t *testing.T) {
 	manager := NewManager()
 
 	home := manager.HomeDir()
 	if home == "" {
-		t.Error("HomeDir()은 빈 문자열을 반환하면 안 됩니다")
+		t.Error("HomeDir() should not return empty string")
 	}
 
-	// 절대 경로인지 확인
 	if home[0] != '/' && home[1] != ':' {
-		t.Errorf("HomeDir() = %s, 절대 경로여야 합니다", home)
+		t.Errorf("HomeDir() = %s, should be absolute path", home)
 	}
 }
 
-// TestManager_ConfigDir은 설정 디렉토리 경로를 테스트합니다.
 func TestManager_ConfigDir(t *testing.T) {
 	manager := NewManager()
 
 	config := manager.ConfigDir()
 	if config == "" {
-		t.Error("ConfigDir()은 빈 문자열을 반환하면 안 됩니다")
+		t.Error("ConfigDir() should not return empty string")
 	}
 }
 
-// TestManager_DataDir은 데이터 디렉토리 경로를 테스트합니다.
 func TestManager_DataDir(t *testing.T) {
 	manager := NewManager()
 
 	data := manager.DataDir()
 	if data == "" {
-		t.Error("DataDir()은 빈 문자열을 반환하면 안 됩니다")
+		t.Error("DataDir() should not return empty string")
 	}
 }
 
-// TestGetAppName은 앱 이름 반환을 테스트합니다.
 func TestGetAppName(t *testing.T) {
 	name := GetAppName()
 	if name != "port-chaser" {
@@ -198,61 +182,54 @@ func TestGetAppName(t *testing.T) {
 	}
 }
 
-// TestGetConfigPath는 설정 경로 반환을 테스트합니다.
 func TestGetConfigPath(t *testing.T) {
 	path := GetConfigPath()
 	if path == "" {
-		t.Error("GetConfigPath()는 빈 문자열을 반환하면 안 됩니다")
+		t.Error("GetConfigPath() should not return empty string")
 	}
-	// 포트-chaser가 포함되어야 함
 	if !strings.Contains(path, "port-chaser") {
-		t.Errorf("GetConfigPath() = %s, port-chaser가 포함되어야 합니다", path)
+		t.Errorf("GetConfigPath() = %s, should contain port-chaser", path)
 	}
 }
 
-// TestGetDataPath는 데이터 경로 반환을 테스트합니다.
 func TestGetDataPath(t *testing.T) {
 	path := GetDataPath()
 	if path == "" {
-		t.Error("GetDataPath()는 빈 문자열을 반환하면 안 됩니다")
+		t.Error("GetDataPath() should not return empty string")
 	}
-	// 포트-chaser가 포함되어야 함
 	if !strings.Contains(path, "port-chaser") {
-		t.Errorf("GetDataPath() = %s, port-chaser가 포함되어야 합니다", path)
+		t.Errorf("GetDataPath() = %s, should contain port-chaser", path)
 	}
 }
 
-// TestGetHistoryPath는 히스토리 경로 반환을 테스트합니다.
 func TestGetHistoryPath(t *testing.T) {
 	path := GetHistoryPath()
 	if path == "" {
-		t.Error("GetHistoryPath()는 빈 문자열을 반환하면 안 됩니다")
+		t.Error("GetHistoryPath() should not return empty string")
 	}
-	// history.db가 포함되어야 함
 	if !strings.Contains(path, "history.db") {
-		t.Errorf("GetHistoryPath() = %s, history.db가 포함되어야 합니다", path)
+		t.Errorf("GetHistoryPath() = %s, should contain history.db", path)
 	}
 }
 
-// TestNormalizePath는 경로 정규화를 테스트합니다.
 func TestNormalizePath(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		contains string // 결과에 포함되어야 하는 문자열
+		contains string
 	}{
 		{
-			name:     "tilde 경로",
+			name:     "tilde path",
 			input:    "~/test",
 			contains: "/test",
 		},
 		{
-			name:     "상대 경로",
+			name:     "relative path",
 			input:    "./test",
 			contains: "test",
 		},
 		{
-			name:     "현재 디렉토리",
+			name:     "current directory",
 			input:    ".",
 			contains: "",
 		},
@@ -262,19 +239,17 @@ func TestNormalizePath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := NormalizePath(tt.input)
 			if tt.contains != "" && !strings.Contains(result, tt.contains) {
-				t.Errorf("NormalizePath(%s) = %s, %s가 포함되어야 합니다", tt.input, result, tt.contains)
+				t.Errorf("NormalizePath(%s) = %s, should contain %s", tt.input, result, tt.contains)
 			}
 		})
 	}
 }
 
-// TestManager_SignalName_Unknown은 알 수 없는 시그널 테스트입니다.
 func TestManager_SignalName_Unknown(t *testing.T) {
 	manager := NewManager()
 
-	// 존재하지 않는 시그널 번호
 	name := manager.SignalName(9999)
 	if !strings.HasPrefix(name, "SIG") {
-		t.Errorf("알 수 없는 시그널 이름 = %s, SIG로 시작해야 합니다", name)
+		t.Errorf("unknown signal name = %s, should start with SIG", name)
 	}
 }

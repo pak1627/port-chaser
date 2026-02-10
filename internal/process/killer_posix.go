@@ -1,6 +1,6 @@
+//go:build darwin || linux
 // +build darwin linux
 
-// Package process는 POSIX 시스템용 프로세스 종료 구현을 제공합니다.
 package process
 
 import (
@@ -9,37 +9,40 @@ import (
 	"syscall"
 )
 
-// Process는 실행 중인 프로세스를 나타냅니다.
+// Process defines the interface for interacting with system processes on POSIX systems.
+// This abstraction allows the killer to work with different process implementations.
 type Process interface {
-	// Signal은 프로세스에 신호를 전송합니다.
+	// Signal sends a signal to the process (SIGTERM, SIGKILL, or 0 for checking existence)
 	Signal(sig syscall.Signal) error
-	// Release는 프로세스 리소스를 해제합니다.
+	// Release releases any resources associated with the process handle
 	Release() error
 }
 
-// osProcess는 표준 라이브러리의 os.Process 래퍼입니다.
+// osProcess wraps the standard library's os.Process to implement our Process interface.
+// It adds the Release method which is a no-op for os.Process since it doesn't hold resources.
 type osProcess struct {
 	*os.Process
 }
 
-// Release는 프로세스 리소스를 해제합니다.
+// Release is a no-op for os.Process since it doesn't require explicit cleanup.
+// This method exists to satisfy the Process interface.
 func (p *osProcess) Release() error {
-	// os.Process는 명시적인 Release가 필요 없음
 	return nil
 }
 
-// Signal은 프로세스에 시스템 신호를 전송합니다.
-// os.Process.Signal은 os.Signal을 받지만, 우리는 syscall.Signal로 변환합니다.
+// Signal sends a signal to the underlying OS process.
+// This delegates to the standard library's Process.Signal method.
 func (p *osProcess) Signal(sig syscall.Signal) error {
-	// os.Process.Signal으로 전달 (os.Signal은 인터페이스, syscall.Signal은 int)
 	return p.Process.Signal(sig)
 }
 
-// findProcessImpl은 POSIX 시스템용 프로세스 찾기 구현입니다.
+// findProcessImpl is the POSIX implementation of process finding.
+// It uses os.FindProcess which on POSIX systems doesn't actually verify the process exists
+// but creates a Process object that can be used with Signal(0) to check existence.
 func findProcessImpl(pid int) (Process, error) {
 	process, err := os.FindProcess(pid)
 	if err != nil {
-		return nil, fmt.Errorf("프로세스 찾기 실패 (PID %d): %w", pid, err)
+		return nil, fmt.Errorf("find process failed (PID %d): %w", pid, err)
 	}
 	return &osProcess{Process: process}, nil
 }

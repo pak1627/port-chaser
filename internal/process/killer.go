@@ -1,4 +1,3 @@
-// Package process는 프로세스 종료 기능을 제공합니다.
 package process
 
 import (
@@ -10,46 +9,44 @@ import (
 	"github.com/manson/port-chaser/internal/models"
 )
 
-// KillResult는 프로세스 종료 결과를 나타냅니다.
+// KillResult contains the outcome of a process termination attempt.
+// It provides detailed information about how the process was terminated.
 type KillResult struct {
-	Success    bool      // 종료 성공 여부
-	Method     KillMethod // 사용된 종료 방법
-	Message    string    // 결과 메시지
-	Duration   time.Duration // 종료까지 걸린 시간
+	Success  bool          // true if process was terminated successfully
+	Method   KillMethod    // termination method used (SIGTERM, SIGKILL, or FAILED)
+	Message  string        // human-readable result message
+	Duration time.Duration // time taken to terminate the process
 }
 
-// KillMethod는 사용된 종료 방법을 나타냅니다.
+// KillMethod represents the method used to terminate a process.
 type KillMethod string
 
 const (
-	KillMethodSIGTERM KillMethod = "SIGTERM" // 정상 종료
-	KillMethodSIGKILL KillMethod = "SIGKILL" // 강제 종료
-	KillMethodFailed  KillMethod = "FAILED"  // 종료 실패
+	KillMethodSIGTERM KillMethod = "SIGTERM" // graceful termination signal
+	KillMethodSIGKILL KillMethod = "SIGKILL" // force termination signal
+	KillMethodFailed  KillMethod = "FAILED"  // termination failed
 )
 
-// Killer는 프로세스 종료 기능을 제공하는 인터페이스입니다.
+// Killer defines the interface for process termination operations.
+// Implementations can provide platform-specific process killing behavior.
 type Killer interface {
-	// Kill은 지정된 PID의 프로세스를 종료합니다.
-	// 먼저 SIGTERM을 전송하고, 3초 내에 종료하지 않으면 SIGKILL을 전송합니다.
+	// Kill attempts to terminate the process with the given PID using default grace period
 	Kill(ctx context.Context, pid int, portInfo *models.PortInfo) (*KillResult, error)
-
-	// KillWithTimeout은 타임아웃을 지정하여 프로세스를 종료합니다.
+	// KillWithTimeout attempts to terminate with a custom grace period before forcing
 	KillWithTimeout(ctx context.Context, pid int, timeout time.Duration, portInfo *models.PortInfo) (*KillResult, error)
-
-	// IsRunning은 프로세스가 실행 중인지 확인합니다.
+	// IsRunning checks if a process with the given PID is currently active
 	IsRunning(pid int) (bool, error)
 }
 
-// ProcessKiller는 Killer 인터페이스의 표준 구현입니다.
+// ProcessKiller implements the Killer interface with a two-phase termination strategy.
+// First tries SIGTERM (graceful shutdown), then SIGKILL (force) if needed.
 type ProcessKiller struct {
-	// GracePeriod는 SIGTERM 후 SIGKILL 전 대기 시간입니다.
-	GracePeriod time.Duration
-
-	// SystemProcessProtection은 시스템 프로세스 보호 기능입니다.
-	SystemProcessProtection bool
+	GracePeriod             time.Duration // how long to wait for graceful shutdown
+	SystemProcessProtection bool          // whether to prevent killing system processes
 }
 
-// NewProcessKiller는 새로운 ProcessKiller를 생성합니다.
+// NewProcessKiller creates a new ProcessKiller with default settings.
+// Default grace period is 3 seconds, system process protection is enabled.
 func NewProcessKiller() *ProcessKiller {
 	return &ProcessKiller{
 		GracePeriod:             3 * time.Second,
@@ -57,7 +54,8 @@ func NewProcessKiller() *ProcessKiller {
 	}
 }
 
-// NewProcessKillerWithGracePeriod는 사용자 정의 대기 시간으로 ProcessKiller를 생성합니다.
+// NewProcessKillerWithGracePeriod creates a ProcessKiller with a custom grace period.
+// Use this when you need more or less time for processes to shut down gracefully.
 func NewProcessKillerWithGracePeriod(gracePeriod time.Duration) *ProcessKiller {
 	return &ProcessKiller{
 		GracePeriod:             gracePeriod,
@@ -65,51 +63,59 @@ func NewProcessKillerWithGracePeriod(gracePeriod time.Duration) *ProcessKiller {
 	}
 }
 
-// Kill은 프로세스를 종료합니다. SIGTERM → 3초 대기 → SIGKILL 순서로 진행합니다.
+// Kill attempts to terminate the process using the default grace period.
+// It first tries SIGTERM, then SIGKILL if the process doesn't exit in time.
 func (k *ProcessKiller) Kill(ctx context.Context, pid int, portInfo *models.PortInfo) (*KillResult, error) {
 	return k.KillWithTimeout(ctx, pid, k.GracePeriod, portInfo)
 }
 
-// KillWithTimeout은 타임아웃을 지정하여 프로세스를 종료합니다.
+// KillWithTimeout attempts to terminate a process with a custom grace period.
+// The termination strategy:
+// 1. Check if process is protected (system process)
+// 2. Verify process is actually running
+// 3. Send SIGTERM for graceful shutdown
+// 4. Wait for process to exit within grace period
+// 5. If still running after timeout, send SIGKILL
+// 6. Return the result with method used and duration
 func (k *ProcessKiller) KillWithTimeout(ctx context.Context, pid int, timeout time.Duration, portInfo *models.PortInfo) (*KillResult, error) {
 	startTime := time.Now()
 
-	// 1. 시스템 프로세스 보호 확인
+	// Protect system processes from accidental termination
 	if k.SystemProcessProtection && portInfo != nil && portInfo.ShouldDisplayWarning() {
 		return &KillResult{
 			Success: false,
 			Method:  KillMethodFailed,
-			Message: fmt.Sprintf("시스템 중요 프로세스(PID %d)는 보호됩니다", pid),
+			Message: fmt.Sprintf("System process (PID %d) is protected", pid),
 		}, nil
 	}
 
-	// 2. 프로세스 실행 중 확인
+	// Verify process is running before attempting to kill
 	running, err := k.IsRunning(pid)
 	if err != nil {
 		return &KillResult{
 			Success: false,
 			Method:  KillMethodFailed,
-			Message: fmt.Sprintf("프로세스 상태 확인 실패: %v", err),
+			Message: fmt.Sprintf("Process status check failed: %v", err),
 		}, err
 	}
 	if !running {
 		return &KillResult{
 			Success: false,
 			Method:  KillMethodFailed,
-			Message: fmt.Sprintf("프로세스 PID %d가 실행 중이 아닙니다", pid),
+			Message: fmt.Sprintf("Process PID %d is not running", pid),
 		}, nil
 	}
 
-	// 3. SIGTERM 전송
+	// Phase 1: Send SIGTERM for graceful shutdown
 	if err := k.sendSignal(pid, syscall.SIGTERM); err != nil {
 		return &KillResult{
 			Success: false,
 			Method:  KillMethodFailed,
-			Message: fmt.Sprintf("SIGTERM 전송 실패: %v", err),
+			Message: fmt.Sprintf("SIGTERM send failed: %v", err),
 		}, err
 	}
 
-	// 4. 그레이스풀 종료 대기
+	// Phase 2: Wait for graceful shutdown or force with SIGKILL
 	graceCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
@@ -119,88 +125,91 @@ func (k *ProcessKiller) KillWithTimeout(ctx context.Context, pid int, timeout ti
 	for {
 		select {
 		case <-graceCtx.Done():
-			// 타임아웃: SIGKILL 전송
+			// Grace period expired - force kill
 			return k.forceKill(ctx, pid, startTime)
 		case <-ticker.C:
-			// 프로세스 종료 확인
+			// Check if process has exited
 			running, err := k.IsRunning(pid)
 			if err == nil && !running {
 				return &KillResult{
 					Success:  true,
 					Method:   KillMethodSIGTERM,
-					Message:  fmt.Sprintf("PID %d 프로세스가 정상 종료되었습니다", pid),
+					Message:  fmt.Sprintf("PID %d terminated gracefully", pid),
 					Duration: time.Since(startTime),
 				}, nil
 			}
 		case <-ctx.Done():
+			// Operation was cancelled from outside
 			return &KillResult{
 				Success: false,
 				Method:  KillMethodFailed,
-				Message: "작업이 취소되었습니다",
+				Message: "Operation cancelled",
 			}, ctx.Err()
 		}
 	}
 }
 
-// forceKill은 SIGKILL을 전송하여 프로세스를 강제 종료합니다.
-func (k *ProcessKiller) forceKill(ctx context.Context, pid int, startTime time.Time) (*KillResult, error) {
-	// 프로세스가 이미 종료되었는지 마지막 확인
+// forceKill sends SIGKILL to terminate a process that didn't exit gracefully.
+// This is the final step after SIGTERM fails. It verifies termination and returns result.
+func (k *ProcessKiller) forceKill(_ context.Context, pid int, startTime time.Time) (*KillResult, error) {
+	// Check one more time in case process exited between last check and timeout
 	running, err := k.IsRunning(pid)
 	if err == nil && !running {
 		return &KillResult{
 			Success:  true,
 			Method:   KillMethodSIGTERM,
-			Message:  fmt.Sprintf("PID %d 프로세스가 종료되었습니다 (타이밍 차이)", pid),
+			Message:  fmt.Sprintf("PID %d terminated (timing difference)", pid),
 			Duration: time.Since(startTime),
 		}, nil
 	}
 
-	// SIGKILL 전송
+	// Send SIGKILL to force termination
 	if err := k.sendSignal(pid, syscall.SIGKILL); err != nil {
 		return &KillResult{
 			Success: false,
 			Method:  KillMethodFailed,
-			Message: fmt.Sprintf("SIGKILL 전송 실패: %v", err),
+			Message: fmt.Sprintf("SIGKILL send failed: %v", err),
 		}, err
 	}
 
-	// SIGKILL 후 즉시 확인
+	// Give the process a moment to terminate after SIGKILL
 	time.Sleep(50 * time.Millisecond)
 	running, _ = k.IsRunning(pid)
 
 	result := &KillResult{
 		Success:  !running,
 		Method:   KillMethodSIGKILL,
-		Message:  fmt.Sprintf("PID %d 프로세스에 SIGKILL을 전송했습니다", pid),
+		Message:  fmt.Sprintf("SIGKILL sent to PID %d", pid),
 		Duration: time.Since(startTime),
 	}
 
+	// Set appropriate message based on final state
 	if !running {
-		result.Message = fmt.Sprintf("PID %d 프로세스가 강제 종료되었습니다", pid)
+		result.Message = fmt.Sprintf("PID %d force terminated", pid)
 		result.Success = true
 	} else {
-		result.Message = fmt.Sprintf("PID %d 프로세스 종료에 실패했습니다", pid)
+		result.Message = fmt.Sprintf("PID %d termination failed", pid)
 		result.Success = false
 	}
 
 	return result, nil
 }
 
-// IsRunning은 프로세스가 실행 중인지 확인합니다.
+// IsRunning checks if a process with the given PID is currently active.
+// It uses signal 0 which doesn't actually send a signal but checks process existence.
+// Returns false if process doesn't exist, true if it exists.
 func (k *ProcessKiller) IsRunning(pid int) (bool, error) {
-	// 프로세스에 신호 0을 전송하여 존재 확인
-	// 에러가 nil이면 프로세스가 실행 중임
 	err := k.sendSignal(pid, 0)
 	if err != nil {
-		return false, nil // 프로세스가 존재하지 않음
+		return false, nil
 	}
 	return true, nil
 }
 
-// sendSignal은 프로세스에 신호를 전송합니다.
+// sendSignal sends a signal to the process with the given PID.
+// Signal 0 is used to check process existence without actually signaling.
+// Actual implementation is platform-specific (see killer_posix.go and killer_windows.go).
 func (k *ProcessKiller) sendSignal(pid int, sig syscall.Signal) error {
-	// syscall.Kill은 프로세스에 신호를 전송합니다.
-	// 신호가 0이면 실제 신호는 전송하지 않고 프로세스 존재 여부만 확인합니다.
 	process, err := findProcess(pid)
 	if err != nil {
 		return err
@@ -209,8 +218,8 @@ func (k *ProcessKiller) sendSignal(pid int, sig syscall.Signal) error {
 	return process.Signal(sig)
 }
 
-// findProcess는 PID로 프로세스를 찾습니다.
-// 플랫폼별로 다른 구현이 필요합니다.
+// findProcess locates a process by PID and returns a Process handle.
+// The actual implementation is platform-specific and defined in killer_posix.go or killer_windows.go.
 func findProcess(pid int) (Process, error) {
 	return findProcessImpl(pid)
 }

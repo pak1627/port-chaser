@@ -1,86 +1,56 @@
-// Package ui는 TUI 스타일링을 제공합니다.
 package ui
 
 import "github.com/charmbracelet/lipgloss"
 
-// Styles는 TUI에서 사용하는 모든 스타일을 포함합니다.
 type Styles struct {
-	// Header는 헤더 스타일입니다.
 	Header lipgloss.Style
 
-	// HeaderTitle은 헤더 제목 스타일입니다.
 	HeaderTitle lipgloss.Style
 
-	// HeaderSubtitle은 헤더 부제목 스타일입니다.
 	HeaderSubtitle lipgloss.Style
 
-	// PortList는 포트 목록 스타일입니다.
 	PortList lipgloss.Style
 
-	// PortItem은 개별 포트 항목 스타일입니다.
 	PortItem lipgloss.Style
 
-	// PortSelected는 선택된 포트 항목 스타일입니다.
 	PortSelected lipgloss.Style
 
-	// DockerMarker는 Docker 마커 [D] 스타일입니다.
 	DockerMarker lipgloss.Style
 
-	// RecommendedMarker는 추천 마커 [!] 스타일입니다.
 	RecommendedMarker lipgloss.Style
 
-	// SystemMarker는 시스템 프로세스 마커 스타일입니다.
 	SystemMarker lipgloss.Style
 
-	// StatusBar는 상태바 스타일입니다.
 	StatusBar lipgloss.Style
 
-	// StatusKey는 상태바 키 바인딩 스타일입니다.
 	StatusKey lipgloss.Style
 
-	// StatusDim은 상태바 텍스트 스타일입니다.
 	StatusDim lipgloss.Style
 
-	// SearchInput은 검색 입력 스타일입니다.
-	SearchInput lipgloss.Style
-
-	// SearchPrompt는 검색 프롬프트 스타일입니다.
-	SearchPrompt lipgloss.Style
-
-	// Dialog는 다이얼로그 스타일입니다.
 	Dialog lipgloss.Style
 
-	// DialogTitle은 다이얼로그 제목 스타일입니다.
 	DialogTitle lipgloss.Style
 
-	// DialogBorder는 다이얼로그 테두리 스타일입니다.
 	DialogBorder lipgloss.Style
 
-	// Warning은 경고 메시지 스타일입니다.
 	Warning lipgloss.Style
 
-	// Error는 에러 메시지 스타일입니다.
 	Error lipgloss.Style
 
-	// Success는 성공 메시지 스타일입니다.
 	Success lipgloss.Style
 
-	// Muted는 비활성 텍스트 스타일입니다.
 	Muted lipgloss.Style
 }
 
-// DefaultStyles는 기본 스타일을 반환합니다.
 func DefaultStyles() *Styles {
 	s := &Styles{}
 
-	// 색상 정의
-	blue := lipgloss.Color("86")    // 파란색 (Docker)
-	yellow := lipgloss.Color("226")  // 노란색 (추천)
-	red := lipgloss.Color("196")     // 빨간색 (시스템)
-	green := lipgloss.Color("46")    // 초록색 (성공)
-	gray := lipgloss.Color("245")    // 회색 (비활성)
+	blue := lipgloss.Color("86")
+	yellow := lipgloss.Color("226")
+	red := lipgloss.Color("196")
+	green := lipgloss.Color("46")
+	gray := lipgloss.Color("245")
 
-	// 헤더 스타일
 	s.Header = lipgloss.NewStyle().
 		Padding(0, 1).
 		Border(lipgloss.NormalBorder(), false, false, true, false).
@@ -95,7 +65,6 @@ func DefaultStyles() *Styles {
 		Faint(true).
 		Foreground(gray)
 
-	// 포트 목록 스타일
 	s.PortList = lipgloss.NewStyle().
 		Padding(1, 2)
 
@@ -109,7 +78,6 @@ func DefaultStyles() *Styles {
 		Bold(true).
 		Padding(0, 1)
 
-	// 마커 스타일
 	s.DockerMarker = lipgloss.NewStyle().
 		Foreground(blue).
 		Bold(true)
@@ -122,7 +90,6 @@ func DefaultStyles() *Styles {
 		Foreground(red).
 		Bold(true)
 
-	// 상태바 스타일
 	s.StatusBar = lipgloss.NewStyle().
 		Padding(1, 2).
 		Border(lipgloss.NormalBorder(), true, false, false, false).
@@ -136,16 +103,6 @@ func DefaultStyles() *Styles {
 		Faint(true).
 		Foreground(gray)
 
-	// 검색 스타일
-	s.SearchInput = lipgloss.NewStyle().
-		Padding(0, 1).
-		Width(60)
-
-	s.SearchPrompt = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("212")).
-		Bold(true)
-
-	// 다이얼로그 스타일
 	s.Dialog = lipgloss.NewStyle().
 		Padding(1, 2).
 		Border(lipgloss.RoundedBorder()).
@@ -161,7 +118,6 @@ func DefaultStyles() *Styles {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("238"))
 
-	// 메시지 스타일
 	s.Warning = lipgloss.NewStyle().
 		Foreground(yellow).
 		Bold(true)
@@ -181,34 +137,26 @@ func DefaultStyles() *Styles {
 	return s
 }
 
-// Helper 함수들
-
-// RenderDockerMarker는 Docker 마커를 렌더링합니다.
 func RenderDockerMarker(styles *Styles) string {
 	return styles.DockerMarker.Render("[D]")
 }
 
-// RenderRecommendedMarker는 추천 마커를 렌더링합니다.
 func RenderRecommendedMarker(styles *Styles) string {
 	return styles.RecommendedMarker.Render("[!]")
 }
 
-// RenderSystemMarker는 시스템 마커를 렌더링합니다.
 func RenderSystemMarker(styles *Styles) string {
 	return styles.SystemMarker.Render("[S]")
 }
 
-// RenderWarning은 경고 메시지를 렌더링합니다.
 func RenderWarning(styles *Styles, msg string) string {
 	return styles.Warning.Render("⚠ " + msg)
 }
 
-// RenderError는 에러 메시지를 렌더링합니다.
 func RenderError(styles *Styles, msg string) string {
 	return styles.Error.Render("✗ " + msg)
 }
 
-// RenderSuccess는 성공 메시지를 렌더링합니다.
 func RenderSuccess(styles *Styles, msg string) string {
 	return styles.Success.Render("✓ " + msg)
 }

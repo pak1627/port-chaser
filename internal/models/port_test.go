@@ -1,4 +1,3 @@
-// Package models에 대한 테스트입니다.
 package models
 
 import (
@@ -6,23 +5,22 @@ import (
 	"time"
 )
 
-// TestPortInfo_IsCommonPort는 일반 포트 확인 기능을 테스트합니다.
 func TestPortInfo_IsCommonPort(t *testing.T) {
 	tests := []struct {
 		name string
 		port int
 		want bool
 	}{
-		{"HTTP 포트", 80, true},
-		{"HTTPS 포트", 443, true},
-		{"개발 포트 3000", 3000, true},
-		{"개발 포트 5000", 5000, true},
-		{"개발 포트 8000", 8000, true},
-		{"개발 포트 8080", 8080, true},
-		{"일반 포트 8081", 8081, false},
-		{"일반 포트 9000", 9000, false},
-		{"시스템 포트 22", 22, false},
-		{"높은 포트 번호", 5432, false},
+		{"HTTP port", 80, true},
+		{"HTTPS port", 443, true},
+		{"dev port 3000", 3000, true},
+		{"dev port 5000", 5000, true},
+		{"dev port 8000", 8000, true},
+		{"dev port 8080", 8080, true},
+		{"common port 8081", 8081, false},
+		{"common port 9000", 9000, false},
+		{"system port 22", 22, false},
+		{"high port number", 5432, false},
 	}
 
 	for _, tt := range tests {
@@ -35,18 +33,17 @@ func TestPortInfo_IsCommonPort(t *testing.T) {
 	}
 }
 
-// TestPortInfo_IsRecommended는 추천 기능을 테스트합니다.
 func TestPortInfo_IsRecommended(t *testing.T) {
 	tests := []struct {
 		name      string
 		killCount int
 		want      bool
 	}{
-		{"3회 종료 - 추천", 3, true},
-		{"5회 종료 - 추천", 5, true},
-		{"2회 종료 - 비추천", 2, false},
-		{"0회 종료 - 비추천", 0, false},
-		{"1회 종료 - 비추천", 1, false},
+		{"3 kills - recommended", 3, true},
+		{"5 kills - recommended", 5, true},
+		{"2 kills - not recommended", 2, false},
+		{"0 kills - not recommended", 0, false},
+		{"1 kill - not recommended", 1, false},
 	}
 
 	for _, tt := range tests {
@@ -59,7 +56,6 @@ func TestPortInfo_IsRecommended(t *testing.T) {
 	}
 }
 
-// TestPortInfo_ShouldDisplayWarning은 경고 표시 기능을 테스트합니다.
 func TestPortInfo_ShouldDisplayWarning(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -67,10 +63,10 @@ func TestPortInfo_ShouldDisplayWarning(t *testing.T) {
 		isSystem bool
 		want     bool
 	}{
-		{"시스템 프로세스", 100, true, true},
-		{"낮은 PID", 50, false, true},
-		{"일반 프로세스", 1234, false, false},
-		{"높은 PID 시스템 프로세스", 500, true, true},
+		{"system process", 100, true, true},
+		{"low PID", 50, false, true},
+		{"normal process", 1234, false, false},
+		{"high PID system process", 500, true, true},
 	}
 
 	for _, tt := range tests {
@@ -83,7 +79,6 @@ func TestPortInfo_ShouldDisplayWarning(t *testing.T) {
 	}
 }
 
-// TestPortInfo_FullFields는 PortInfo의 모든 필드가 올바르게 설정되는지 테스트합니다.
 func TestPortInfo_FullFields(t *testing.T) {
 	now := time.Now()
 	p := PortInfo{
@@ -115,7 +110,6 @@ func TestPortInfo_FullFields(t *testing.T) {
 	}
 }
 
-// TestPortInfo_DockerFields는 Docker 관련 필드를 테스트합니다.
 func TestPortInfo_DockerFields(t *testing.T) {
 	p := PortInfo{
 		PortNumber:    5432,
@@ -141,7 +135,6 @@ func TestPortInfo_DockerFields(t *testing.T) {
 	}
 }
 
-// TestHistoryEntry_Fields는 HistoryEntry의 모든 필드를 테스트합니다.
 func TestHistoryEntry_Fields(t *testing.T) {
 	now := time.Now()
 	h := HistoryEntry{
@@ -170,7 +163,6 @@ func TestHistoryEntry_Fields(t *testing.T) {
 	}
 }
 
-// TestDockerInfo_Fields는 DockerInfo의 모든 필드를 테스트합니다.
 func TestDockerInfo_Fields(t *testing.T) {
 	d := DockerInfo{
 		ContainerID:   "abc123",

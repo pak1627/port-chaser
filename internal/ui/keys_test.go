@@ -1,19 +1,16 @@
-// Package ui에 대한 테스트입니다.
 package ui
 
 import (
 	"testing"
 )
 
-// TestDefaultKeyBindings는 기본 키 바인딩 생성을 테스트합니다.
 func TestDefaultKeyBindings(t *testing.T) {
 	kb := DefaultKeyBindings()
 
 	if kb == nil {
-		t.Fatal("DefaultKeyBindings가 nil을 반환했습니다")
+		t.Fatal("DefaultKeyBindings returned nil")
 	}
 
-	// 모든 바인딩이 설정되어 있는지 확인
 	tests := []struct {
 		name    string
 		binding KeyBinding
@@ -37,136 +34,119 @@ func TestDefaultKeyBindings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			help := tt.binding.Help()
 			if help.Key == "" {
-				t.Errorf("%s 바인딩에 Help Key가 없습니다", tt.name)
+				t.Errorf("%s binding missing Help Key", tt.name)
 			}
 			if help.Desc == "" {
-				t.Errorf("%s 바인딩에 Help Desc가 없습니다", tt.name)
+				t.Errorf("%s binding missing Help Desc", tt.name)
 			}
 		})
 	}
 }
 
-// TestKeyBindings_HelpText는 HelpText 메서드를 테스트합니다.
 func TestKeyBindings_HelpText(t *testing.T) {
 	kb := DefaultKeyBindings()
 	text := kb.HelpText()
 
 	if text == "" {
-		t.Error("HelpText가 비어있습니다")
+		t.Error("HelpText is empty")
 	}
 
-	// 주요 키가 포함되어 있는지 확인
 	expectedKeys := []string{"↑/k", "↓/j", "enter", "q"}
 	for _, expectedKey := range expectedKeys {
 		if !contains(text, expectedKey) {
-			t.Errorf("HelpText에 '%s'가 포함되어 있지 않습니다: %s", expectedKey, text)
+			t.Errorf("HelpText missing '%s': %s", expectedKey, text)
 		}
 	}
 
 	t.Logf("HelpText: %s", text)
 }
 
-// TestKeyBindings_ShortHelp는 ShortHelp 메서드를 테스트합니다.
 func TestKeyBindings_ShortHelp(t *testing.T) {
 	kb := DefaultKeyBindings()
 	shortHelp := kb.ShortHelp()
 
 	if len(shortHelp) == 0 {
-		t.Error("ShortHelp가 비어있습니다")
+		t.Error("ShortHelp is empty")
 	}
 
-	// ShortHelp는 주요 키만 포함해야 함
-	expectedLength := 6 // NavigateUp, NavigateDown, KillProcess, Search, ToggleDockerOnly, Quit
+	expectedLength := 6
 	if len(shortHelp) != expectedLength {
-		t.Errorf("ShortHelp 길이가 %d이어야 함: got=%d", expectedLength, len(shortHelp))
+		t.Errorf("ShortHelp length should be %d: got=%d", expectedLength, len(shortHelp))
 	}
 }
 
-// TestKeyBindings_FullHelp는 FullHelp 메서드를 테스트합니다.
 func TestKeyBindings_FullHelp(t *testing.T) {
 	kb := DefaultKeyBindings()
 	fullHelp := kb.FullHelp()
 
 	if len(fullHelp) == 0 {
-		t.Error("FullHelp가 비어있습니다")
+		t.Error("FullHelp is empty")
 	}
 
-	// FullHelp는 ShortHelp보다 길어야 함
 	shortHelp := kb.ShortHelp()
 	if len(fullHelp) <= len(shortHelp) {
-		t.Errorf("FullHelp는 ShortHelp보다 길어야 함: FullHelp=%d, ShortHelp=%d",
+		t.Errorf("FullHelp should be longer than ShortHelp: FullHelp=%d, ShortHelp=%d",
 			len(fullHelp), len(shortHelp))
 	}
 }
 
-// TestKeyBindings_VimStyle은 vim 스타일 키 바인딩을 테스트합니다.
 func TestKeyBindings_VimStyle(t *testing.T) {
 	kb := DefaultKeyBindings()
 
-	// j/k로 위아래 이동
 	if !containsKey(kb.NavigateUp, "k") {
-		t.Error("NavigateUp에 'k' 키가 포함되어 있지 않습니다")
+		t.Error("NavigateUp missing 'k' key")
 	}
 	if !containsKey(kb.NavigateUp, "up") {
-		t.Error("NavigateUp에 'up' 키가 포함되어 있지 않습니다")
+		t.Error("NavigateUp missing 'up' key")
 	}
 
 	if !containsKey(kb.NavigateDown, "j") {
-		t.Error("NavigateDown에 'j' 키가 포함되어 있지 않습니다")
+		t.Error("NavigateDown missing 'j' key")
 	}
 	if !containsKey(kb.NavigateDown, "down") {
-		t.Error("NavigateDown에 'down' 키가 포함되어 있지 않습니다")
+		t.Error("NavigateDown missing 'down' key")
 	}
 
-	// gg로 맨 위, G로 맨 아래
 	if !containsKey(kb.NavigateTop, "g") {
-		t.Error("NavigateTop에 'g' 키가 포함되어 있지 않습니다")
+		t.Error("NavigateTop missing 'g' key")
 	}
 
 	if !containsKey(kb.NavigateBottom, "G") {
-		t.Error("NavigateBottom에 'G' 키가 포함되어 있지 않습니다")
+		t.Error("NavigateBottom missing 'G' key")
 	}
 }
 
-// TestKeyBindings_SpecialKeys는 특수 키 조합을 테스트합니다.
 func TestKeyBindings_SpecialKeys(t *testing.T) {
 	kb := DefaultKeyBindings()
 
-	// Ctrl+Q로 종료
 	if !containsKey(kb.Quit, "ctrl+q") {
-		t.Error("Quit에 'ctrl+q' 키가 포함되어 있지 않습니다")
+		t.Error("Quit missing 'ctrl+q' key")
 	}
 
-	// Ctrl+R로 새로고침
 	if !containsKey(kb.Refresh, "ctrl+r") {
-		t.Error("Refresh에 'ctrl+r' 키가 포함되어 있지 않습니다")
+		t.Error("Refresh missing 'ctrl+r' key")
 	}
 
-	// ESC로 취소
 	if !containsKey(kb.Cancel, "esc") {
-		t.Error("Cancel에 'esc' 키가 포함되어 있지 않습니다")
+		t.Error("Cancel missing 'esc' key")
 	}
 }
 
-// TestKeyBindings_ConfirmCancel는 확인/취소 키를 테스트합니다.
 func TestKeyBindings_ConfirmCancel(t *testing.T) {
 	kb := DefaultKeyBindings()
 
-	// 확인: y 또는 Y
 	if !containsKey(kb.Confirm, "y") {
-		t.Error("Confirm에 'y' 키가 포함되어 있지 않습니다")
+		t.Error("Confirm missing 'y' key")
 	}
 	if !containsKey(kb.Confirm, "Y") {
-		t.Error("Confirm에 'Y' 키가 포함되어 있지 않습니다")
+		t.Error("Confirm missing 'Y' key")
 	}
 
-	// 취소: n, N, ESC
 	if len(kb.Cancel.keys) < 3 {
-		t.Errorf("Cancel에 최소 3개 키가 있어야 함: got=%d", len(kb.Cancel.keys))
+		t.Errorf("Cancel should have at least 3 keys: got=%d", len(kb.Cancel.keys))
 	}
 }
 
-// TestJoinStrings는 joinStrings 헬퍼 함수를 테스트합니다.
 func TestJoinStrings(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -175,25 +155,25 @@ func TestJoinStrings(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "빈 슬라이스",
+			name:     "empty slice",
 			strs:     []string{},
 			sep:      ",",
 			expected: "",
 		},
 		{
-			name:     "단일 요소",
+			name:     "single element",
 			strs:     []string{"a"},
 			sep:      ",",
 			expected: "a",
 		},
 		{
-			name:     "여러 요소",
+			name:     "multiple elements",
 			strs:     []string{"a", "b", "c"},
 			sep:      ",",
 			expected: "a,b,c",
 		},
 		{
-			name:     "다른 구분자",
+			name:     "different separator",
 			strs:     []string{"a", "b", "c"},
 			sep:      " | ",
 			expected: "a | b | c",
@@ -210,7 +190,6 @@ func TestJoinStrings(t *testing.T) {
 	}
 }
 
-// TestKeyBindings_HelpMessages는 도움말 메시지를 테스트합니다.
 func TestKeyBindings_HelpMessages(t *testing.T) {
 	kb := DefaultKeyBindings()
 
@@ -219,28 +198,27 @@ func TestKeyBindings_HelpMessages(t *testing.T) {
 		binding      KeyBinding
 		expectedHelp string
 	}{
-		{"Quit", kb.Quit, "종료"},
-		{"NavigateUp", kb.NavigateUp, "위로"},
-		{"NavigateDown", kb.NavigateDown, "아래로"},
-		{"KillProcess", kb.KillProcess, "프로세스 종료"},
-		{"Search", kb.Search, "검색"},
-		{"ShowHelp", kb.ShowHelp, "도움말"},
-		{"ShowHistory", kb.ShowHistory, "히스토리"},
-		{"Refresh", kb.Refresh, "새고침"},
+		{"Quit", kb.Quit, "quit"},
+		{"NavigateUp", kb.NavigateUp, "up"},
+		{"NavigateDown", kb.NavigateDown, "down"},
+		{"KillProcess", kb.KillProcess, "kill process"},
+		{"Search", kb.Search, "search"},
+		{"ShowHelp", kb.ShowHelp, "help"},
+		{"ShowHistory", kb.ShowHistory, "history"},
+		{"Refresh", kb.Refresh, "refresh"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			help := tt.binding.Help()
 			if help.Desc != tt.expectedHelp {
-				t.Errorf("Help 메시지가 예상과 다릅니다: got=%v, want=%v",
+				t.Errorf("Help message differs: got=%v, want=%v",
 					help.Desc, tt.expectedHelp)
 			}
 		})
 	}
 }
 
-// TestNewBinding은 NewBinding 함수를 테스트합니다.
 func TestNewBinding(t *testing.T) {
 	kb := NewBinding(
 		WithKeys("a", "b"),
@@ -248,7 +226,7 @@ func TestNewBinding(t *testing.T) {
 	)
 
 	if len(kb.keys) != 2 {
-		t.Errorf("keys 길이 = %d, want 2", len(kb.keys))
+		t.Errorf("keys length = %d, want 2", len(kb.keys))
 	}
 
 	if kb.help.key != "k" {
@@ -260,12 +238,11 @@ func TestNewBinding(t *testing.T) {
 	}
 }
 
-// Helper 함수
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr ||
 		len(s) > len(substr) && (s[:len(substr)] == substr ||
-		s[len(s)-len(substr):] == substr ||
-		containsMiddle(s, substr)))
+			s[len(s)-len(substr):] == substr ||
+			containsMiddle(s, substr)))
 }
 
 func containsMiddle(s, substr string) bool {

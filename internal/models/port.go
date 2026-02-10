@@ -1,42 +1,66 @@
-// Package models는 Port Chaser의 데이터 모델을 정의합니다.
 package models
 
 import "time"
 
-// PortInfo는 스캔된 포트 정보를 나타냅니다.
+// PortInfo contains detailed information about a listening port and its associated process.
+// This is the primary data structure for displaying ports in the TUI.
 type PortInfo struct {
-	PortNumber    int       `json:"port_number"`    // 포트 번호
-	ProcessName   string    `json:"process_name"`   // 프로세스 이름
-	PID           int       `json:"pid"`            // 프로세스 ID
-	User          string    `json:"user"`           // 프로세스 소유자
-	Command       string    `json:"command"`        // 실행 명령
-	IsDocker      bool      `json:"is_docker"`      // Docker 여부
-	ContainerID   string    `json:"container_id"`   // 컨테이너 ID (있는 경우)
-	ContainerName string    `json:"container_name"` // 컨테이너 이름 (있는 경우)
-	ImageName     string    `json:"image_name"`     // 이미지 이름 (있는 경우)
-	IsSystem      bool      `json:"is_system"`      // 시스템 프로세스 여부
-	KillCount     int       `json:"kill_count"`     // 최근 30일 종료 횟수
-	LastKilled    time.Time `json:"last_killed"`    // 마지막 종료 시각
+	// PortNumber is the TCP/UDP port number being listened on
+	PortNumber int `json:"port_number"`
+	// ProcessName is the name of the process using this port
+	ProcessName string `json:"process_name"`
+	// PID is the process ID of the process using this port
+	PID int `json:"pid"`
+	// User is the username of the process owner
+	User string `json:"user"`
+	// Command is the full command line that launched the process
+	Command string `json:"command"`
+	// IsDocker is true if this port belongs to a Docker container
+	IsDocker bool `json:"is_docker"`
+	// ContainerID is the Docker container ID (empty if not a Docker container)
+	ContainerID string `json:"container_id"`
+	// ContainerName is the Docker container name (empty if not a Docker container)
+	ContainerName string `json:"container_name"`
+	// ImageName is the Docker image name (empty if not a Docker container)
+	ImageName string `json:"image_name"`
+	// IsSystem is true if this is a system process that should be treated carefully
+	IsSystem bool `json:"is_system"`
+	// KillCount is how many times this port has been killed (tracked in history)
+	KillCount int `json:"kill_count"`
+	// LastKilled is when this port was last killed (zero if never)
+	LastKilled time.Time `json:"last_killed"`
 }
 
-// HistoryEntry는 종료된 프로세스의 히스토리 정보를 나타냅니다.
+// HistoryEntry represents a single entry in the kill history log.
+// It records each time a process is terminated.
 type HistoryEntry struct {
-	ID          int64     `json:"id"`           // 고유 ID
-	PortNumber  int       `json:"port_number"`  // 포트 번호
-	ProcessName string    `json:"process_name"` // 프로세스 이름
-	PID         int       `json:"pid"`          // 프로세스 ID
-	Command     string    `json:"command"`      // 실행 명령
-	KilledAt    time.Time `json:"killed_at"`    // 종료 시각
+	// ID is the unique identifier for this history entry
+	ID int64 `json:"id"`
+	// PortNumber is the port that was killed
+	PortNumber int `json:"port_number"`
+	// ProcessName is the name of the process that was killed
+	ProcessName string `json:"process_name"`
+	// PID is the process ID that was killed
+	PID int `json:"pid"`
+	// Command is the command line of the killed process
+	Command string `json:"command"`
+	// KilledAt is when the process was terminated
+	KilledAt time.Time `json:"killed_at"`
 }
 
-// DockerInfo는 Docker 컨테이너 정보를 나타냅니다.
+// DockerInfo contains Docker-specific metadata for a container port.
+// This is extracted when detecting that a port belongs to a Docker container.
 type DockerInfo struct {
-	ContainerID   string `json:"container_id"`   // 컨테이너 ID
-	ContainerName string `json:"container_name"` // 컨테이너 이름
-	ImageName     string `json:"image_name"`     // 이미지 이름
+	// ContainerID is the unique Docker container ID
+	ContainerID string `json:"container_id"`
+	// ContainerName is the human-readable container name
+	ContainerName string `json:"container_name"`
+	// ImageName is the name of the Docker image the container is running
+	ImageName string `json:"image_name"`
 }
 
-// IsCommonPort는 일반적으로 사용되는 포트(80, 443, 3000, 5000, 8000, 8080)인지 확인합니다.
+// IsCommonPort returns true if this port is commonly used for development.
+// Common ports include: 80 (HTTP), 443 (HTTPS), 3000, 5000, 8000, 8080 (common dev servers).
 func (p *PortInfo) IsCommonPort() bool {
 	commonPorts := map[int]bool{
 		80: true, 443: true, 3000: true,
@@ -45,17 +69,20 @@ func (p *PortInfo) IsCommonPort() bool {
 	return commonPorts[p.PortNumber]
 }
 
-// IsRecommended는 최근 30일 동안 3회 이상 종료된 프로세스인지 확인합니다.
+// IsRecommended returns true if this port has been killed 3 or more times.
+// Frequently killed ports might be candidates for the user's attention.
 func (p *PortInfo) IsRecommended() bool {
 	return p.KillCount >= 3
 }
 
-// ShouldDisplayWarning은 시스템 프로세스로서 경고가 필요한지 확인합니다.
+// ShouldDisplayWarning returns true if this port should display a warning before killing.
+// System processes and low-PID processes (<100) are considered potentially dangerous.
 func (p *PortInfo) ShouldDisplayWarning() bool {
 	return p.IsSystem || p.PID < 100
 }
 
-// IsSystemPort는 시스템 포트(0-1023)인지 확인합니다.
+// IsSystemPort returns true if this is a well-known system port (0-1023).
+// These ports typically require elevated permissions and are used by system services.
 func (p *PortInfo) IsSystemPort() bool {
 	return p.PortNumber >= 0 && p.PortNumber <= 1023
 }

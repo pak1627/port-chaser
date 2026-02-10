@@ -1,26 +1,27 @@
-// Package detector는 Docker 컨테이너 감지 기능을 제공합니다.
 package detector
 
 import (
 	"github.com/manson/port-chaser/internal/models"
 )
 
-// Detector는 Docker 컨테이너 감지 인터페이스입니다.
+// Detector defines the interface for detecting Docker containers associated with ports.
+// Implementations can query the Docker daemon to find container information.
 type Detector interface {
-	// Detect는 포트 목록에서 Docker 컨테이너를 감지하고 정보를 강화합니다.
+	// Detect enriches port information with Docker details when available
 	Detect(ports []models.PortInfo) ([]models.PortInfo, error)
-
-	// IsAvailable은 Docker 감지기가 사용 가능한지 확인합니다.
+	// IsAvailable returns true if Docker is available and can be queried
 	IsAvailable() bool
 }
 
-// MockDetector는 테스트용 모의 Docker 감지기입니다.
+// MockDetector is a test implementation of Detector that allows setting predefined responses.
+// This is useful for testing without requiring an actual Docker daemon to be running.
 type MockDetector struct {
-	available bool
-	dockerMap map[int]models.DockerInfo
+	available bool                      // whether the mock reports Docker as available
+	dockerMap map[int]models.DockerInfo // mapping of port numbers to Docker info
 }
 
-// NewMockDetector는 새로운 MockDetector를 생성합니다.
+// NewMockDetector creates a new MockDetector with default settings.
+// By default it reports as available with an empty Docker mapping.
 func NewMockDetector() *MockDetector {
 	return &MockDetector{
 		available: true,
@@ -28,17 +29,20 @@ func NewMockDetector() *MockDetector {
 	}
 }
 
-// SetAvailable은 가용성을 설정합니다.
+// SetAvailable sets whether the mock detector reports Docker as available.
 func (m *MockDetector) SetAvailable(available bool) {
 	m.available = available
 }
 
-// SetDockerInfo는 포트 번호에 대한 Docker 정보를 설정합니다.
+// SetDockerInfo associates Docker information with a specific port number.
+// When Detect is called, ports with this number will be enriched with the provided info.
 func (m *MockDetector) SetDockerInfo(portNumber int, info models.DockerInfo) {
 	m.dockerMap[portNumber] = info
 }
 
-// Detect는 포트 목록에서 Docker 컨테이너를 감지합니다.
+// Detect enriches port information based on the pre-configured dockerMap.
+// Ports that have a corresponding entry in dockerMap will be marked as Docker ports
+// with the associated container ID, name, and image information.
 func (m *MockDetector) Detect(ports []models.PortInfo) ([]models.PortInfo, error) {
 	if !m.available {
 		return ports, nil
@@ -56,12 +60,13 @@ func (m *MockDetector) Detect(ports []models.PortInfo) ([]models.PortInfo, error
 	return result, nil
 }
 
-// IsAvailable은 MockDetector가 사용 가능한지 확인합니다.
+// IsAvailable returns whether this mock detector reports as available.
 func (m *MockDetector) IsAvailable() bool {
 	return m.available
 }
 
-// EnrichPortInfo는 포트 정보에 Docker 정보를 추가합니다.
+// EnrichPortInfo creates a new PortInfo with Docker details merged in.
+// It sets the IsDocker flag and populates container-related fields.
 func EnrichPortInfo(port models.PortInfo, dockerInfo models.DockerInfo) models.PortInfo {
 	port.IsDocker = true
 	port.ContainerID = dockerInfo.ContainerID

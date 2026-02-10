@@ -1,11 +1,9 @@
-// Package main은 Port Chaser의 진입점입니다.
 package main
 
 import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -13,18 +11,20 @@ import (
 	"github.com/manson/port-chaser/internal/models"
 	"github.com/manson/port-chaser/internal/process"
 	"github.com/manson/port-chaser/internal/scanner"
+	"github.com/manson/port-chaser/internal/storage"
 )
 
 const (
-	// appName은 애플리케이션 이름입니다.
+	// appName is the human-readable name of the application
 	appName = "Port Chaser"
-
-	// version은 애플리케이션 버전입니다.
+	// version is the current semantic version
 	version = "0.1.0"
 )
 
+// main is the application entry point.
+// It handles command-line flags and starts the Bubbletea TUI program.
 func main() {
-	// 인자 처리
+	// Handle command-line flags for version and help
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "-v", "--version", "version":
@@ -36,163 +36,105 @@ func main() {
 		}
 	}
 
-	// 모델 초기화
+	// Initialize the application model with dependencies
 	model := initializeModel()
 
-	// Bubbletea 프로그램 시작
+	// Ensure storage is closed when the app exits
+	if model.Storage != nil {
+		defer func() {
+			if err := model.Storage.Close(); err != nil {
+				// Log error but don't affect exit code
+				fmt.Fprintf(os.Stderr, "warning: failed to close storage: %v\n", err)
+			}
+		}()
+	}
+
+	// Create and run the Bubbletea program
 	p := tea.NewProgram(
 		model,
-		tea.WithAltScreen(),       // 대체 스크린 모드
-		tea.WithMouseCellMotion(), // 마우스 셀 모션
+		tea.WithAltScreen(),       // Use alternate screen buffer (fullscreen TUI)
+		tea.WithMouseCellMotion(), // Enable mouse support for future features
 	)
 
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("에러: %v\n", err)
+		fmt.Printf("error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-// initializeModel은 TUI 모델을 초기화합니다.
+// initializeModel creates the initial application state with all dependencies wired up.
+// This is where dependency injection happens for testability.
 func initializeModel() app.Model {
-	// 프로세스 종료기 생성
 	killer := process.NewProcessKiller()
+	commonPortScanner := scanner.NewCommonPortScanner()
 
-	// 포트 스캐너 생성 (실제 구현에서는 gopsutil 사용)
-	scanner := &mockScanner{
-		ports: getMockPorts(),
+	// Initialize storage (SQLite backend)
+	// If storage initialization fails, the app will work without persistence
+	var sto app.Storage
+	sqliteStorage, err := storage.NewSQLite(storage.DefaultConfig())
+	if err == nil {
+		sto = sqliteStorage
 	}
+	// If err != nil, sto remains nil and the app works without persistence
 
 	return app.Model{
 		Ports:          []models.PortInfo{},
 		FilteredPorts:  []models.PortInfo{},
 		SelectedIndex:  -1,
 		ViewMode:       app.ViewModeMain,
-		SearchQuery:    "",
 		ShowDockerOnly: false,
 		History:        []models.HistoryEntry{},
 		Loading:        true,
 		Width:          80,
 		Height:         24,
-		Scanner:        scanner,
+		Scanner:        commonPortScanner,
 		Killer:         &killerAdapter{killer: killer},
+		Storage:        sto,
+		PreviousPorts:  make(map[int]models.PortInfo),
+		NewPorts:       make(map[int]bool),
+		RemovedPorts:   make(map[int]bool),
 	}
 }
 
-// printHelp는 도움말을 출력합니다.
+// printHelp displays usage information and keyboard shortcuts.
 func printHelp() {
-	help := `Port Chaser - 터미널 UI 기반 포트 관리 도구
+	help := `Port Chaser - Terminal UI Port Management Tool
 
-사용법:
-  port-chaser [옵션]
+Usage:
+  port-chaser [options]
 
-옵션:
-  -v, --version     버전 정보 출력
-  -h, --help        도움말 출력
+Options:
+  -v, --version     Show version
+  -h, --help        Show help
 
-TUI 키 바인딩:
-  ↑/k, ↓/j          위/아래 이동
-  gg, G             맨 위/맨 아래 이동
-  Enter             프로세스 종료
-  /                 검색
-  d                 Docker 포트만 표시 토글
-  h                 히스토리 보기
-  ?                 도움말
-  r                 새로고침
-  q, Ctrl+C         종료
+TUI Key Bindings:
+  Arrow/k/j         Navigate up/down
+  gg, G             Jump to top/bottom
+  Enter             Kill process
+  /                 Search
+  d                 Toggle Docker filter
+  h                 Show history
+  ?                 Show help
+  r                 Refresh
+  q, Ctrl+C         Quit
 
-프로젝트 홈페이지: https://github.com/manson/port-chaser
+Project: https://github.com/manson/port-chaser
 `
 	fmt.Println(help)
 }
 
-// ========== Mock 구현 (실제 구현 시 제거) ==========
-
-// mockScanner는 테스트용 모의 스캐너입니다.
-type mockScanner struct {
-	ports []models.PortInfo
-}
-
-func (m *mockScanner) Scan() ([]models.PortInfo, error) {
-	// 실제 스캔 시뮬레이션
-	time.Sleep(100 * time.Millisecond)
-	return m.ports, nil
-}
-
-// getMockPorts는 모의 포트 데이터를 반환합니다.
-func getMockPorts() []models.PortInfo {
-	now := time.Now()
-	return []models.PortInfo{
-		{
-			PortNumber:    3000,
-			ProcessName:   "node",
-			PID:           12345,
-			User:          "developer",
-			Command:       "npm start",
-			IsDocker:      true,
-			ContainerID:   "abc123",
-			ContainerName: "my-app",
-			ImageName:     "node:16-alpine",
-			IsSystem:      false,
-			KillCount:     5,
-			LastKilled:    now.Add(-24 * time.Hour),
-		},
-		{
-			PortNumber:    8080,
-			ProcessName:   "python",
-			PID:           23456,
-			User:          "developer",
-			Command:       "python app.py",
-			IsDocker:      false,
-			IsSystem:      false,
-			KillCount:     0,
-			LastKilled:    time.Time{},
-		},
-		{
-			PortNumber:    5432,
-			ProcessName:   "postgres",
-			PID:           34567,
-			User:          "postgres",
-			Command:       "postgres -D /usr/local/var/postgres",
-			IsDocker:      true,
-			ContainerID:   "def456",
-			ContainerName: "db",
-			ImageName:     "postgres:14",
-			IsSystem:      false,
-			KillCount:     1,
-			LastKilled:    now.Add(-48 * time.Hour),
-		},
-		{
-			PortNumber:    80,
-			ProcessName:   "httpd",
-			PID:           100,
-			User:          "root",
-			Command:       "/usr/sbin/httpd -D FOREGROUND",
-			IsDocker:      false,
-			IsSystem:      true,
-			KillCount:     0,
-			LastKilled:    time.Time{},
-		},
-		{
-			PortNumber:    9000,
-			ProcessName:   "custom-app",
-			PID:           45678,
-			User:          "developer",
-			Command:       "./custom-app",
-			IsDocker:      false,
-			IsSystem:      false,
-			KillCount:     3,
-			LastKilled:    now.Add(-2 * time.Hour),
-		},
-	}
-}
-
-// killerAdapter는 process.Killer를 app.Killer 인터페이스에 맞춥니다.
+// killerAdapter adapts the process.Killer interface to the app.Killer interface.
+// The app.Killer interface is simpler (takes PortInfo), while process.Killer
+// takes a PID and context separately. This adapter bridges the two.
 type killerAdapter struct {
 	killer *process.ProcessKiller
 }
 
+// Kill attempts to terminate the process associated with the given port.
+// It uses a 5-second timeout and returns an error if termination fails.
 func (a *killerAdapter) Kill(port models.PortInfo) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// Create a context with 5-second timeout (5 * 1e9 nanoseconds)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*1000000000)
 	defer cancel()
 
 	result, err := a.killer.Kill(ctx, port.PID, &port)
@@ -200,7 +142,7 @@ func (a *killerAdapter) Kill(port models.PortInfo) error {
 		return err
 	}
 	if !result.Success {
-		return fmt.Errorf("종료 실패: %s", result.Message)
+		return fmt.Errorf("kill failed: %s", result.Message)
 	}
 	return nil
 }

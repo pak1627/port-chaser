@@ -4,23 +4,45 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Test Coverage](https://img.shields.io/badge/Coverage-83.3%25-brightgreen)](https://github.com/manson/port-chaser)
 
-**Port Chaser**는 개발자를 위한 터미널 UI 기반 포트 관리 도구입니다. 로컬 시스템에서 사용 중인 포트를 실시간으로 확인하고, Docker 컨테이너를 자동 감지하며, 키보드 단축키로 빠르게 프로세스를 종료할 수 있습니다.
+**Port Chaser** is a Terminal UI (TUI) based port management tool for developers. It displays active ports on your local system in real-time, automatically detects Docker containers, and allows you to quickly terminate processes using keyboard shortcuts.
 
-## 주요 기능
+## Key Features
 
-- **실시간 포트 스캔**: 2초 이내에 시스템 포트 사용 현황 표시
-- **직관적인 TUI**: Vim 스타일 키보드 네비게이션 지원
-- **Docker 통합**: 컨테이너 포트 자동 감지 및 시각적 표시
-- **스마트 추천**: 자주 종료하는 프로세스 자동 표시
-- **검색 및 필터링**: 실시간 검색으로 빠른 포트 찾기
-- **안전한 종료**: SIGTERM → SIGKILL 단계적 프로세스 종료
-- **히스토리 추적**: SQLite 기반 종료 이력 관리
+- **Real-time Port Scanning**: Display system port usage within 2 seconds
+- **Intuitive TUI**: Vim-style keyboard navigation support
+- **Docker Integration**: Automatic detection and visual indication of container ports
+- **Smart Recommendations**: Auto-display frequently terminated processes
+- **Search & Filtering**: Quick port finding with real-time search
+- **Safe Termination**: Gradual SIGTERM → SIGKILL process termination
+- **History Tracking**: SQLite-based termination history management
 
-## 시작하기
+## Getting Started
 
-### 설치
+### Installation
 
-**소스에서 빌드:**
+#### Method 1: Go install (Simplest)
+
+Requires Go 1.21 or higher.
+
+```bash
+go install github.com/manson/port-chaser@latest
+```
+
+After installation, the binary will be created in `~/go/bin` or `$GOPATH/bin`. Make sure this path is included in your PATH.
+
+```bash
+# Add to PATH (if needed)
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+#### Method 2: Homebrew (Recommended for macOS)
+
+```bash
+brew tap manson/port-chaser
+brew install port-chaser
+```
+
+#### Method 3: Build from Source
 
 ```bash
 git clone https://github.com/manson/port-chaser.git
@@ -29,206 +51,200 @@ go build -o port-chaser ./cmd/port-chaser
 sudo mv port-chaser /usr/local/bin/
 ```
 
-**Go 설치:**
+### System Requirements
 
-```bash
-go install github.com/manson/port-chaser@latest
-```
+- Go 1.21 or higher
+- macOS, Linux, or Windows
+- Docker (optional, for container detection)
 
-### 시스템 요구사항
+## Usage
 
-- Go 1.21 이상
-- macOS, Linux, 또는 Windows
-- Docker (선택사항, 컨테이너 감지용)
-
-## 사용법
-
-### 기본 실행
+### Basic Execution
 
 ```bash
 port-chaser
 ```
 
-### 명령행 옵션
+### Command Line Options
 
 ```bash
-# 버전 정보
+# Version information
 port-chaser --version
 
-# 도움말
+# Help
 port-chaser --help
 ```
 
-## TUI 인터페이스
+## TUI Interface
 
-### 메인 화면
+### Main Screen
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Port Chaser                                             12 │
 ├─────────────────────────────────────────────────────────────┤
 │  PORT   PROCESS         PID    USER    DOCKER    STATUS     │
-│  3000   node            12345  dev     [D]my   [!] 5회      │
+│  3000   node            12345  dev     [D]my   [!] 5x      │
 │  8080   python          23456  dev     -        -          │
-│  5432   postgres        34567  pg      [D]db   1회         │
-│  9000   custom-app      45678  dev     -        [!] 3회     │
+│  5432   postgres        34567  pg      [D]db   1x         │
+│  9000   custom-app      45678  dev     -        [!] 3x      │
 ├─────────────────────────────────────────────────────────────┤
-│ ↑/k:이동 | Enter:종료 | /:검색 | d:Docker 필터 | q:종료    │
+│ ↑/k:navigate | Enter:kill | /:search | d:Docker filter | q:quit │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 키보드 단축키
+### Keyboard Shortcuts
 
-#### 네비게이션
+#### Navigation
 
-| 키 | 설명 |
-|----|------|
-| `↑` / `k` | 위로 이동 |
-| `↓` / `j` | 아래로 이동 |
-| `gg` | 맨 위로 이동 |
-| `G` | 맨 아래로 이동 |
+| Key | Description |
+|-----|-------------|
+| `↑` / `k` | Move up |
+| `↓` / `j` | Move down |
+| `gg` | Go to top |
+| `G` | Go to bottom |
 
-#### 작업
+#### Actions
 
-| 키 | 설명 |
-|----|------|
-| `Enter` | 프로세스 종료 |
-| `/` | 검색 모드 |
-| `d` | Docker 포트만 표시 토글 |
-| `h` | 히스토리 보기 |
-| `?` | 도움말 |
-| `r` | 새로고침 |
-| `q` / `Ctrl+C` | 종료 |
+| Key | Description |
+|-----|-------------|
+| `Enter` | Terminate process |
+| `/` | Search mode |
+| `d` | Toggle Docker-only filter |
+| `h` | View history |
+| `?` | Help |
+| `r` | Refresh |
+| `q` / `Ctrl+C` | Quit |
 
-#### 검색 모드
+#### Search Mode
 
-| 키 | 설명 |
-|----|------|
-| `ESC` / `n` | 검색 취소 |
-| `Enter` | 검색어 입력 완료 |
+| Key | Description |
+|-----|-------------|
+| `ESC` / `n` | Cancel search |
+| `Enter` | Complete search input |
 
-### 마커 설명
+### Marker Legend
 
-| 마커 | 의미 |
-|------|------|
-| `[D]` | Docker 컨테이너에서 실행 중 |
-| `[!]` | 최근 30일간 3회 이상 종료된 프로세스 |
-| `⚠` | 시스템 중요 프로세스 (종료 주의) |
+| Marker | Meaning |
+|--------|---------|
+| `[D]` | Running in Docker container |
+| `[!]` | Process terminated 3+ times in last 30 days |
+| `⚠` | System critical process (terminate with caution) |
 
-## 기능 상세
+## Feature Details
 
-### Docker 컨테이너 감지
+### Docker Container Detection
 
-Port Chaser는 Docker 컨테이너에서 실행 중인 포트를 자동으로 감지합니다. 감지된 컨테이너 정보는 다음과 같이 표시됩니다:
+Port Chaser automatically detects ports running in Docker containers. Detected container information is displayed as follows:
 
 ```
-3000  node  12345  dev  [D]my-app(node:16)  [!] 5회
+3000  node  12345  dev  [D]my-app(node:16)  [!] 5x
 ```
 
-- `[D]` 마커: Docker 컨테이너에서 실행 중
-- 컨테이너 이름과 이미지 정보 표시
+- `[D]` marker: Running in Docker container
+- Displays container name and image information
 
-### 스마트 추천 시스템
+### Smart Recommendation System
 
-최근 30일 동안 3회 이상 종료된 프로세스는 `[!]` 마커로 표시되어 상단에 우선 표시됩니다. 이를 통해 자주 종료하는 개발 서버를 빠르게 식별할 수 있습니다.
+Processes terminated 3 or more times in the last 30 days are marked with `[!]` and displayed at the top for priority access. This helps quickly identify development servers that are frequently terminated.
 
-### 안전한 프로세스 종료
+### Safe Process Termination
 
-프로세스 종료는 두 단계로 진행됩니다:
+Process termination proceeds in two stages:
 
-1. **SIGTERM**: 정상 종료 신호 전송 (3초 대기)
-2. **SIGKILL**: 3초 내 종료하지 않으면 강제 종료
+1. **SIGTERM**: Send normal termination signal (wait 3 seconds)
+2. **SIGKILL**: Force terminate if not terminated within 3 seconds
 
-시스템 중요 프로세스(PID < 100)는 보호되어 실수로 종료되는 것을 방지합니다.
+System critical processes (PID < 100) are protected to prevent accidental termination.
 
-### 히스토리 추적
+### History Tracking
 
-종료한 모든 프로세스는 SQLite 데이터베이스에 기록됩니다. `h` 키를 눌러 히스토리를 확인하고, 이전에 종료한 프로세스의 재시작 명령을 제안받을 수 있습니다.
+All terminated processes are recorded in a SQLite database. Press `h` to view history and get suggested restart commands for previously terminated processes.
 
-## 아키텍처
+## Architecture
 
 ```
 port-chaser/
-├── cmd/port-chaser/      # 메인 진입점
+├── cmd/port-chaser/      # Main entry point
 ├── internal/
-│   ├── app/              # TUI 애플리케이션 모델
-│   ├── detector/         # Docker 감지기
-│   ├── models/           # 데이터 모델
-│   ├── platform/         # 플랫폼별 프로세스 관리
-│   ├── process/          # 프로세스 종료 기능
-│   ├── scanner/          # 포트 스캐너
-│   ├── storage/          # SQLite 히스토리 저장소
-│   └── ui/               # Bubbletea UI 컴포넌트
+│   ├── app/              # TUI application model
+│   ├── detector/         # Docker detector
+│   ├── models/           # Data models
+│   ├── platform/         # Platform-specific process management
+│   ├── process/          # Process termination functionality
+│   ├── scanner/          # Port scanner
+│   ├── storage/          # SQLite history storage
+│   └── ui/               # Bubbletea UI components
 └── go.mod
 ```
 
-### 기술 스택
+### Tech Stack
 
-- **Bubbletea**: TUI 프레임워크
-- **Lipgloss**: 스타일링
-- **SQLite**: 히스토리 저장 (WAL 모드)
-- **Docker SDK**: 컨테이너 감지 (CLI로 대체 가능)
+- **Bubbletea**: TUI framework
+- **Lipgloss**: Styling
+- **SQLite**: History storage (WAL mode)
+- **Docker SDK**: Container detection (can be replaced with CLI)
 
-## 개발
+## Development
 
-### 테스트 실행
+### Running Tests
 
 ```bash
-# 전체 테스트
+# All tests
 go test ./...
 
-# 커버리지 확인
+# Check coverage
 go test -cover ./...
 
-# 특정 패키지 테스트
+# Test specific package
 go test ./internal/scanner
 ```
 
-### 빌드
+### Building
 
 ```bash
-# 로컬 빌드
+# Local build
 go build -o port-chaser ./cmd/port-chaser
 
-# 크로스 컴파일
+# Cross compile
 GOOS=linux GOARCH=amd64 go build -o port-chaser-linux ./cmd/port-chaser
 GOOS=darwin GOARCH=amd64 go build -o port-chaser-mac ./cmd/port-chaser
 GOOS=windows GOARCH=amd64 go build -o port-chaser.exe ./cmd/port-chaser
 ```
 
-### 코드 스타일
+### Code Style
 
-프로젝트는 Go 표준 코딩 스타일을 따르며:
+The project follows Go standard coding style:
 
-- English 코드 주석
-- Korean 사용자 문서
-- 85% 이상 테스트 커버리지 목표
+- English code comments
+- English user documentation
+- Target 85%+ test coverage
 
-## 기여
+## Contributing
 
-기여를 환영합니다! 다음 단계를 따라주세요:
+Contributions are welcome! Please follow these steps:
 
 1. Fork this repository
-2. feature branch 생성 (`git checkout -b feature/amazing-feature`)
-3. 변경사항 commit (`git commit -m 'feat: add amazing feature'`)
-4. branch에 push (`git push origin feature/amazing-feature`)
-5. Pull Request 열기
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 라이선스
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 저자
+## Author
 
 manson - [GitHub](https://github.com/manson)
 
-## 감사의 말씀
+## Acknowledgments
 
-- [Bubbletea](https://github.com/charmbracelet/bubbletea) - 우수한 TUI 프레임워크
-- [Lipgloss](https://github.com/charmbracelet/lipgloss) - 스타일링 라이브러리
-- 모든 기여자 분들
+- [Bubbletea](https://github.com/charmbracelet/bubbletea) - Excellent TUI framework
+- [Lipgloss](https://github.com/charmbracelet/lipgloss) - Styling library
+- All contributors
 
 ---
 
-**프로젝트 홈페이지**: https://github.com/manson/port-chaser
-**버그 신고**: https://github.com/manson/port-chaser/issues
+**Project Homepage**: https://github.com/manson/port-chaser
+**Bug Reports**: https://github.com/manson/port-chaser/issues

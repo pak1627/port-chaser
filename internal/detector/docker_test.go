@@ -1,4 +1,3 @@
-// Package detector에 대한 테스트입니다.
 package detector
 
 import (
@@ -7,11 +6,9 @@ import (
 	"github.com/manson/port-chaser/internal/models"
 )
 
-// TestMockDetector_Detect는 모의 감지기 테스트입니다.
 func TestMockDetector_Detect(t *testing.T) {
 	detector := NewMockDetector()
 
-	// 테스트용 Docker 정보 설정
 	detector.SetDockerInfo(3000, models.DockerInfo{
 		ContainerID:   "abc123",
 		ContainerName: "node-app",
@@ -24,7 +21,6 @@ func TestMockDetector_Detect(t *testing.T) {
 		ImageName:     "postgres:15",
 	})
 
-	// 테스트
 	ports := []models.PortInfo{
 		{PortNumber: 3000, PID: 1001},
 		{PortNumber: 8080, PID: 1002},
@@ -36,22 +32,20 @@ func TestMockDetector_Detect(t *testing.T) {
 		t.Fatalf("Detect() error = %v", err)
 	}
 
-	// 3000과 5432는 Docker여야 함
 	dockerCount := 0
 	for _, port := range result {
 		if port.IsDocker {
 			dockerCount++
 			if port.ContainerID == "" {
-				t.Error("Docker 포트의 ContainerID가 비어있습니다")
+				t.Error("Docker port ContainerID is empty")
 			}
 		}
 	}
 
 	if dockerCount != 2 {
-		t.Errorf("Docker 포트 수 = %d, want 2", dockerCount)
+		t.Errorf("Docker port count = %d, want 2", dockerCount)
 	}
 
-	// 8080은 Docker가 아니어야 함
 	var port8080 *models.PortInfo
 	for i := range result {
 		if result[i].PortNumber == 8080 {
@@ -61,15 +55,14 @@ func TestMockDetector_Detect(t *testing.T) {
 	}
 
 	if port8080 == nil {
-		t.Fatal("포트 8080을 찾을 수 없습니다")
+		t.Fatal("port 8080 not found")
 	}
 
 	if port8080.IsDocker {
-		t.Error("포트 8080은 Docker가 아니어야 합니다")
+		t.Error("port 8080 should not be Docker")
 	}
 }
 
-// TestMockDetector_DetectEmpty는 빈 포트 목록 테스트입니다.
 func TestMockDetector_DetectEmpty(t *testing.T) {
 	detector := NewMockDetector()
 
@@ -79,28 +72,24 @@ func TestMockDetector_DetectEmpty(t *testing.T) {
 	}
 
 	if len(result) != 0 {
-		t.Errorf("결과 길이 = %d, want 0", len(result))
+		t.Errorf("result length = %d, want 0", len(result))
 	}
 }
 
-// TestMockDetector_IsAvailable은 가용성 확인 테스트입니다.
 func TestMockDetector_IsAvailable(t *testing.T) {
 	detector := NewMockDetector()
 
-	// 기본적으로 사용 가능
 	if !detector.IsAvailable() {
-		t.Error("MockDetector는 기본적으로 사용 가능해야 합니다")
+		t.Error("MockDetector should be available by default")
 	}
 
-	// 사용 불가능으로 설정
 	detector.SetAvailable(false)
 
 	if detector.IsAvailable() {
-		t.Error("SetAvailable(false) 후에 사용 불가능해야 합니다")
+		t.Error("should not be available after SetAvailable(false)")
 	}
 }
 
-// TestEnrichPortInfo는 포트 정보 강화 테스트입니다.
 func TestEnrichPortInfo(t *testing.T) {
 	dockerInfo := models.DockerInfo{
 		ContainerID:   "abc123",
@@ -116,7 +105,7 @@ func TestEnrichPortInfo(t *testing.T) {
 	enriched := EnrichPortInfo(port, dockerInfo)
 
 	if !enriched.IsDocker {
-		t.Error("강화된 포트는 Docker여야 합니다")
+		t.Error("enriched port should be Docker")
 	}
 
 	if enriched.ContainerID != "abc123" {

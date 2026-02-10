@@ -1,4 +1,3 @@
-// Package scanner는 시스템 포트 스캔 기능을 제공합니다.
 package scanner
 
 import (
@@ -7,54 +6,57 @@ import (
 	"github.com/manson/port-chaser/internal/models"
 )
 
-// Scanner는 포트 스캔 기능을 제공하는 인터페이스입니다.
+// Scanner defines the interface for port scanning operations.
+// Implementations can scan all ports or query specific ports by number.
 type Scanner interface {
-	// Scan은 시스템의 활성 포트를 스캔합니다.
+	// Scan performs a complete port scan and returns all active ports
 	Scan() ([]models.PortInfo, error)
-
-	// ScanByPort는 특정 포트만 스캔합니다.
+	// ScanByPort returns detailed info for a specific port number
 	ScanByPort(portNumber int) (*models.PortInfo, error)
 }
 
-// PortSorter는 포트 목록 정렬을 위한 인터페이스입니다.
+// PortSorter defines methods for sorting port lists by different criteria.
+// This allows flexible ordering of scan results based on user preferences.
 type PortSorter interface {
-	// SortByCommonPort는 일반 포트를 상단에 정렬합니다.
+	// SortByCommonPort sorts common ports (80, 443, etc.) first, then by port number
 	SortByCommonPort(ports []models.PortInfo) []models.PortInfo
-
-	// SortByPortNumber는 포트 번호순으로 정렬합니다.
+	// SortByPortNumber sorts ports strictly by port number in ascending order
 	SortByPortNumber(ports []models.PortInfo) []models.PortInfo
 }
 
-// DefaultPortSorter는 기본 포트 정렬 구현입니다.
+// DefaultPortSorter implements PortSorter with standard sorting behavior.
+// It prioritizes common development ports for easier navigation.
 type DefaultPortSorter struct{}
 
-// NewDefaultPortSorter는 새로운 DefaultPortSorter를 생성합니다.
+// NewDefaultPortSorter creates a new DefaultPortSorter instance.
 func NewDefaultPortSorter() *DefaultPortSorter {
 	return &DefaultPortSorter{}
 }
 
-// SortByCommonPort는 일반 포트(80, 443, 3000, 5000, 8000, 8080)를 상단에 정렬하고,
-// 그 외 포트는 포트 번호 오름차순으로 정렬합니다.
+// SortByCommonPort sorts ports with common ports appearing first.
+// Common ports (80, 443, 3000, 5000, 8000, 8080) are sorted to the top
+// in ascending order, followed by remaining ports sorted by port number.
+// This helps users find frequently-used development ports quickly.
 func (s *DefaultPortSorter) SortByCommonPort(ports []models.PortInfo) []models.PortInfo {
 	if len(ports) == 0 {
 		return ports
 	}
 
-	// 결과 슬라이스 생성
+	// Create a copy to avoid modifying the original slice
 	result := make([]models.PortInfo, len(ports))
 	copy(result, ports)
 
-	// 일반 포트 집합
+	// Define which ports are considered "common" for development
 	commonPortsSet := map[int]bool{
-		80:    true,
-		443:   true,
-		3000:  true,
-		5000:  true,
-		8000:  true,
-		8080:  true,
+		80:   true,  // HTTP
+		443:  true,  // HTTPS
+		3000: true,  // Common dev server port
+		5000: true,  // Common dev server port
+		8000: true,  // Common dev server port
+		8080: true,  // HTTP alternate
 	}
 
-	// 일반 포트와 일반 포트가 아닌 것으로 분리
+	// Separate ports into common and other groups
 	var commonPorts []models.PortInfo
 	var otherPorts []models.PortInfo
 
@@ -66,27 +68,28 @@ func (s *DefaultPortSorter) SortByCommonPort(ports []models.PortInfo) []models.P
 		}
 	}
 
-	// 일반 포트 정렬 (포트 번호순)
+	// Sort each group by port number
 	sort.Slice(commonPorts, func(i, j int) bool {
 		return commonPorts[i].PortNumber < commonPorts[j].PortNumber
 	})
 
-	// 나머지 포트 정렬 (포트 번호순)
 	sort.Slice(otherPorts, func(i, j int) bool {
 		return otherPorts[i].PortNumber < otherPorts[j].PortNumber
 	})
 
-	// 결합
+	// Combine with common ports first
 	result = append(commonPorts, otherPorts...)
 	return result
 }
 
-// SortByPortNumber는 포트 번호 오름차순으로 정렬합니다.
+// SortByPortNumber sorts ports strictly by port number in ascending order.
+// This provides a simple, predictable ordering of all ports.
 func (s *DefaultPortSorter) SortByPortNumber(ports []models.PortInfo) []models.PortInfo {
 	if len(ports) == 0 {
 		return ports
 	}
 
+	// Create a copy to avoid modifying the original slice
 	result := make([]models.PortInfo, len(ports))
 	copy(result, ports)
 
@@ -97,16 +100,18 @@ func (s *DefaultPortSorter) SortByPortNumber(ports []models.PortInfo) []models.P
 	return result
 }
 
-// ScanResult는 스캔 결과를 나타냅니다.
+// ScanResult encapsulates the results of a port scan operation.
+// It provides convenient methods for filtering and analyzing scan results.
 type ScanResult struct {
-	Ports     []models.PortInfo // 스캔된 포트 목록
-	Count     int               // 포트 수
-	Error     error             // 스캔 중 발생한 에러
-	Duration  int64             // 스캔 시간 (밀리초)
-	HasDocker bool              // Docker 포트 포함 여부
+	Ports     []models.PortInfo // Discovered ports
+	Count     int               // Total number of ports found
+	Error     error             // Any error that occurred during scanning
+	Duration  int64             // Time taken for the scan (in milliseconds)
+	HasDocker bool              // True if any Docker containers were found
 }
 
-// NewScanResult는 새로운 ScanResult를 생성합니다.
+// NewScanResult creates a new ScanResult from a ports slice and error.
+// It automatically sets the count and detects presence of Docker containers.
 func NewScanResult(ports []models.PortInfo, err error) *ScanResult {
 	result := &ScanResult{
 		Ports: ports,
@@ -114,7 +119,7 @@ func NewScanResult(ports []models.PortInfo, err error) *ScanResult {
 		Error: err,
 	}
 
-	// Docker 포트 확인
+	// Check if any ports belong to Docker containers
 	for _, port := range ports {
 		if port.IsDocker {
 			result.HasDocker = true
@@ -125,7 +130,8 @@ func NewScanResult(ports []models.PortInfo, err error) *ScanResult {
 	return result
 }
 
-// FilteredPorts는 필터링된 포트 목록을 반환합니다.
+// FilteredPorts returns a subset of ports that match the given predicate.
+// The predicate function receives each port and returns true to include it.
 func (r *ScanResult) FilteredPorts(predicate func(models.PortInfo) bool) []models.PortInfo {
 	var filtered []models.PortInfo
 	for _, port := range r.Ports {
@@ -136,28 +142,30 @@ func (r *ScanResult) FilteredPorts(predicate func(models.PortInfo) bool) []model
 	return filtered
 }
 
-// CommonPorts는 일반 포트만 반환합니다.
+// CommonPorts returns only ports that are considered common (80, 443, etc.).
 func (r *ScanResult) CommonPorts() []models.PortInfo {
 	return r.FilteredPorts(func(p models.PortInfo) bool {
 		return p.IsCommonPort()
 	})
 }
 
-// DockerPorts는 Docker 포트만 반환합니다.
+// DockerPorts returns only ports belonging to Docker containers.
 func (r *ScanResult) DockerPorts() []models.PortInfo {
 	return r.FilteredPorts(func(p models.PortInfo) bool {
 		return p.IsDocker
 	})
 }
 
-// RecommendedPorts는 추천 포트(자주 종료된)만 반환합니다.
+// RecommendedPorts returns ports that are frequently killed (KillCount >= 3).
+// These might be processes the user often wants to terminate.
 func (r *ScanResult) RecommendedPorts() []models.PortInfo {
 	return r.FilteredPorts(func(p models.PortInfo) bool {
 		return p.IsRecommended()
 	})
 }
 
-// SystemPorts는 시스템 포트만 반환합니다.
+// SystemPorts returns only system ports (port numbers 0-1023).
+// These typically require elevated permissions and should be treated carefully.
 func (r *ScanResult) SystemPorts() []models.PortInfo {
 	return r.FilteredPorts(func(p models.PortInfo) bool {
 		return p.IsSystemPort()

@@ -1,18 +1,15 @@
-// Package ui는 키 바인딩을 정의합니다.
 package ui
 
 import tea "github.com/charmbracelet/bubbletea"
 
-// KeyBinding은 키 바인딩을 나타냅니다.
 type KeyBinding struct {
 	keys []string
 	help struct {
-		key string
+		key  string
 		desc string
 	}
 }
 
-// NewBinding은 새로운 키 바인딩을 생성합니다.
 func NewBinding(opts ...BindingOpt) KeyBinding {
 	kb := KeyBinding{}
 	for _, opt := range opts {
@@ -21,17 +18,14 @@ func NewBinding(opts ...BindingOpt) KeyBinding {
 	return kb
 }
 
-// BindingOpt는 키 바인딩 옵션입니다.
 type BindingOpt func(*KeyBinding)
 
-// WithKeys는 키를 설정합니다.
 func WithKeys(keys ...string) BindingOpt {
 	return func(kb *KeyBinding) {
 		kb.keys = keys
 	}
 }
 
-// WithHelp는 도움말을 설정합니다.
 func WithHelp(key, desc string) BindingOpt {
 	return func(kb *KeyBinding) {
 		kb.help.key = key
@@ -39,13 +33,11 @@ func WithHelp(key, desc string) BindingOpt {
 	}
 }
 
-// Help는 도움말 정보를 반환합니다.
 type Help struct {
-	Key string
+	Key  string
 	Desc string
 }
 
-// Help는 도움말을 반환합니다.
 func (kb KeyBinding) Help() Help {
 	return Help{
 		Key:  kb.help.key,
@@ -53,144 +45,104 @@ func (kb KeyBinding) Help() Help {
 	}
 }
 
-// KeyBindings는 TUI 키 바인딩을 정의합니다.
 type KeyBindings struct {
-	// Quit는 애플리케이션 종료 키입니다.
-	Quit KeyBinding
-
-	// NavigateUp은 위로 이동 키입니다.
-	NavigateUp KeyBinding
-
-	// NavigateDown은 아래로 이동 키입니다.
-	NavigateDown KeyBinding
-
-	// NavigateTop은 맨 위로 이동 키입니다.
-	NavigateTop KeyBinding
-
-	// NavigateBottom은 맨 아래로 이동 키입니다.
-	NavigateBottom KeyBinding
-
-	// KillProcess는 프로세스 종료 키입니다.
-	KillProcess KeyBinding
-
-	// Search는 검색 모드 진입 키입니다.
-	Search KeyBinding
-
-	// Confirm은 확인 키입니다.
-	Confirm KeyBinding
-
-	// Cancel은 취소 키입니다.
-	Cancel KeyBinding
-
-	// ToggleDockerOnly는 Docker 전용 필터 토글 키입니다.
+	Quit             KeyBinding
+	NavigateUp       KeyBinding
+	NavigateDown     KeyBinding
+	NavigateTop      KeyBinding
+	NavigateBottom   KeyBinding
+	KillProcess      KeyBinding
+	Search           KeyBinding
+	Confirm          KeyBinding
+	Cancel           KeyBinding
 	ToggleDockerOnly KeyBinding
-
-	// ShowHelp는 도움말 표시 키입니다.
-	ShowHelp KeyBinding
-
-	// ShowHistory는 히스토리 표시 키입니다.
-	ShowHistory KeyBinding
-
-	// Refresh는 새로고침 키입니다.
-	Refresh KeyBinding
+	ShowHelp         KeyBinding
+	ShowHistory      KeyBinding
+	Refresh          KeyBinding
 }
 
-// DefaultKeyBindings는 기본 키 바인딩을 반환합니다.
 func DefaultKeyBindings() *KeyBindings {
 	kb := &KeyBindings{}
 
-	// 종료: q 또는 Ctrl+Q
 	kb.Quit = NewBinding(
 		WithKeys("q", "ctrl+q"),
-		WithHelp("q", "종료"),
+		WithHelp("q", "quit"),
 	)
 
-	// 네비게이션: 위/아래 방향키, j/k (vim 스타일)
 	kb.NavigateUp = NewBinding(
 		WithKeys("up", "k"),
-		WithHelp("↑/k", "위로"),
+		WithHelp("↑/k", "up"),
 	)
 
 	kb.NavigateDown = NewBinding(
 		WithKeys("down", "j"),
-		WithHelp("↓/j", "아래로"),
+		WithHelp("↓/j", "down"),
 	)
 
-	// vim 스타일: gg로 맨 위, G로 맨 아래
 	kb.NavigateTop = NewBinding(
 		WithKeys("g"),
-		WithHelp("gg", "맨 위"),
+		WithHelp("gg", "top"),
 	)
 
 	kb.NavigateBottom = NewBinding(
 		WithKeys("G"),
-		WithHelp("G", "맨 아래"),
+		WithHelp("G", "bottom"),
 	)
 
-	// 프로세스 종료: Enter
 	kb.KillProcess = NewBinding(
 		WithKeys("enter"),
-		WithHelp("enter", "프로세스 종료"),
+		WithHelp("enter", "kill process"),
 	)
 
-	// 검색: /
 	kb.Search = NewBinding(
 		WithKeys("/"),
-		WithHelp("/", "검색"),
+		WithHelp("/", "search"),
 	)
 
-	// 확인: y
 	kb.Confirm = NewBinding(
 		WithKeys("y", "Y"),
-		WithHelp("y", "확인"),
+		WithHelp("y", "confirm"),
 	)
 
-	// 취소: n, ESC
 	kb.Cancel = NewBinding(
 		WithKeys("n", "N", "esc"),
-		WithHelp("n/esc", "취소"),
+		WithHelp("n/esc", "cancel"),
 	)
 
-	// Docker 필터: d
 	kb.ToggleDockerOnly = NewBinding(
 		WithKeys("d"),
-		WithHelp("d", "Docker 필터"),
+		WithHelp("d", "Docker filter"),
 	)
 
-	// 도움말: ?
 	kb.ShowHelp = NewBinding(
 		WithKeys("?"),
-		WithHelp("?", "도움말"),
+		WithHelp("?", "help"),
 	)
 
-	// 히스토리: h
 	kb.ShowHistory = NewBinding(
 		WithKeys("h"),
-		WithHelp("h", "히스토리"),
+		WithHelp("h", "history"),
 	)
 
-	// 새로고침: r
 	kb.Refresh = NewBinding(
 		WithKeys("r", "ctrl+r"),
-		WithHelp("r", "새고침"),
+		WithHelp("r", "refresh"),
 	)
 
 	return kb
 }
 
-// HelpText는 키 바인딩 도움말 텍스트를 반환합니다.
 func (kb *KeyBindings) HelpText() string {
 	help := []string{
-		kb.NavigateUp.Help().Key + "/" + kb.NavigateDown.Help().Key + ": " + "이동",
-		kb.KillProcess.Help().Key + ": " + "종료",
-		kb.Search.Help().Key + ": " + "검색",
-		kb.ToggleDockerOnly.Help().Key + ": " + "Docker 필터",
-		kb.Quit.Help().Key + ": " + "종료",
+		kb.NavigateUp.Help().Key + "/" + kb.NavigateDown.Help().Key + ": " + "move",
+		kb.KillProcess.Help().Key + ": " + "kill",
+		kb.Search.Help().Key + ": " + "search",
+		kb.ToggleDockerOnly.Help().Key + ": " + "Docker filter",
+		kb.Quit.Help().Key + ": " + "quit",
 	}
 	return " | " + joinStrings(help, " | ")
 }
 
-// ShortHelp는 짧은 도움말을 반환합니다.
 func (kb *KeyBindings) ShortHelp() []KeyBinding {
 	return []KeyBinding{
 		kb.NavigateUp,
@@ -202,7 +154,6 @@ func (kb *KeyBindings) ShortHelp() []KeyBinding {
 	}
 }
 
-// FullHelp는 전체 도움말을 반환합니다.
 func (kb *KeyBindings) FullHelp() []KeyBinding {
 	return []KeyBinding{
 		kb.NavigateUp,
@@ -219,7 +170,6 @@ func (kb *KeyBindings) FullHelp() []KeyBinding {
 	}
 }
 
-// joinStrings는 문자열 슬라이스를 구분자로 연결합니다.
 func joinStrings(strs []string, sep string) string {
 	if len(strs) == 0 {
 		return ""
@@ -231,7 +181,6 @@ func joinStrings(strs []string, sep string) string {
 	return result
 }
 
-// Matches는 키가 이 바인딩과 일치하는지 확인합니다.
 func (kb KeyBinding) Matches(msg tea.Msg) bool {
 	keyMsg, ok := msg.(tea.KeyMsg)
 	if !ok {
