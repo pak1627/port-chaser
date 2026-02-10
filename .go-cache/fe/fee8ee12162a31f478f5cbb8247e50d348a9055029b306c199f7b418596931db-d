@@ -1,0 +1,555 @@
+//line /Users/manson/opensource/port-chaser/internal/app/model.go:1:1
+// Package app는 Bubbletea TUI 애플리케이션 모델을 정의합니다.
+package app
+
+import (
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/manson/port-chaser/internal/models"
+)
+
+// ViewMode는 현재 뷰 모드를 나타냅니다.
+type ViewMode int
+
+const (
+	// ViewModeMain은 메인 포트 목록 뷰입니다.
+	ViewModeMain ViewMode = iota
+
+	// ViewModeSearch는 검색 모드입니다.
+	ViewModeSearch
+
+	// ViewModeConfirmKill은 프로세스 종료 확인 다이얼로그입니다.
+	ViewModeConfirmKill
+
+	// ViewModeHistory는 히스토리 뷰입니다.
+	ViewModeHistory
+
+	// ViewModeHelp는 도움말 뷰입니다.
+	ViewModeHelp
+)
+
+// String은 ViewMode의 문자열 표현을 반환합니다.
+func (vm ViewMode) String() string {goCover_bed35bb5f610__0[0] = 7 ; goCover_bed35bb5f610__0[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__0[2] = 0 ; goCover_bed35bb5f610__0[3] = 1;
+	switch vm {
+	case ViewModeMain:goCover_bed35bb5f610__0[4] = 1;
+		return "main"
+	case ViewModeSearch:goCover_bed35bb5f610__0[5] = 1;
+		return "search"
+	case ViewModeConfirmKill:goCover_bed35bb5f610__0[6] = 1;
+		return "confirm_kill"
+	case ViewModeHistory:goCover_bed35bb5f610__0[7] = 1;
+		return "history"
+	case ViewModeHelp:goCover_bed35bb5f610__0[8] = 1;
+		return "help"
+	default:goCover_bed35bb5f610__0[9] = 1;
+		return "unknown"
+	}
+}
+
+// Model은 TUI 애플리케이션의 상태 모델입니다.
+// Bubbletea의 MVU 아키텍처를 따릅니다.
+type Model struct {
+	// Ports는 스캔된 전체 포트 목록입니다.
+	Ports []models.PortInfo
+
+	// FilteredPorts는 현재 필터링된 포트 목록입니다.
+	FilteredPorts []models.PortInfo
+
+	// SelectedIndex는 현재 선택된 포트 항목의 인덱스입니다.
+	SelectedIndex int
+
+	// ViewMode는 현재 뷰 모드입니다.
+	ViewMode ViewMode
+
+	// SearchQuery는 현재 검색어입니다.
+	SearchQuery string
+
+	// ShowDockerOnly는 Docker 포트만 표시할지 여부입니다.
+	ShowDockerOnly bool
+
+	// History는 종료 이력 목록입니다.
+	History []models.HistoryEntry
+
+	// Loading은 로딩 상태입니다.
+	Loading bool
+
+	// Err는 발생한 에러입니다.
+	Err error
+
+	// StatusMessage는 상태바에 표시할 메시지입니다.
+	StatusMessage string
+
+	// StatusMessageTimeout은 상태 메시지 만료 시각입니다.
+	StatusMessageTimeout time.Time
+
+	// Quit은 애플리케이션 종료 플래그입니다.
+	Quit bool
+
+	// LastScanTime은 마지막 스캔 시각입니다.
+	LastScanTime time.Time
+
+	// KillConfirmationPort는 종료 확인 중인 포트 정보입니다.
+	KillConfirmationPort *models.PortInfo
+
+	// Width는 터미널 너비입니다.
+	Width int
+
+	// Height는 터미널 높이입니다.
+	Height int
+
+	// Scanner는 포트 스캐너 인터페이스입니다.
+	Scanner Scanner
+
+	// Killer는 프로세스 종료 인터페이스입니다.
+	Killer Killer
+}
+
+// Scanner는 포트 스캔 인터페이스입니다.
+type Scanner interface {
+	Scan() ([]models.PortInfo, error)
+}
+
+// Killer는 프로세스 종료 인터페이스입니다.
+type Killer interface {
+	Kill(port models.PortInfo) error
+}
+
+// Init는 Bubbletea 초기화 함수입니다.
+func (m Model) Init() tea.Cmd {goCover_bed35bb5f610__1[0] = 1 ; goCover_bed35bb5f610__1[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__1[2] = 1 ; goCover_bed35bb5f610__1[3] = 1;
+	// 초기 포트 스캔 명령 반환
+	return tea.Batch(
+		m.scanPortsCmd(),
+		tea.EnterAltScreen, // 알트 스크린 모드 진입
+	)
+}
+
+// scanPortsCmd는 포트 스캔 명령을 생성합니다.
+func (m Model) scanPortsCmd() tea.Cmd {goCover_bed35bb5f610__2[0] = 2 ; goCover_bed35bb5f610__2[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__2[2] = 2 ; goCover_bed35bb5f610__2[3] = 1;
+	return func() tea.Msg {goCover_bed35bb5f610__2[4] = 1;
+		// 스캔이 완료되면 PortsScannedMsg 반환
+		// 실제 구현에서는 m.Scanner.Scan() 호출
+		return PortsScannedMsg{
+			Ports:    []models.PortInfo{}, // 실제 스캔 결과
+			ScannedAt: time.Now(),
+		}
+	}
+}
+
+// Update는 Bubbletea 업데이트 함수입니다.
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__3[0] = 8 ; goCover_bed35bb5f610__3[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__3[2] = 3 ; goCover_bed35bb5f610__3[3] = 1;
+	// 메시지 타입에 따른 처리
+	switch msg := msg.(type) {
+	case tea.KeyMsg:goCover_bed35bb5f610__3[4] = 1;
+		return m.handleKeyMsg(msg)
+
+	case tea.WindowSizeMsg:goCover_bed35bb5f610__3[5] = 1;
+		m.Width = msg.Width
+		m.Height = msg.Height
+		return m, nil
+
+	case PortsScannedMsg:goCover_bed35bb5f610__3[6] = 1;
+		return m.handlePortsScanned(msg)
+
+	case PortKilledMsg:goCover_bed35bb5f610__3[7] = 1;
+		return m.handlePortKilled(msg)
+
+	case StatusMsg:goCover_bed35bb5f610__3[8] = 1;
+		m.StatusMessage = msg.Message
+		m.StatusMessageTimeout = time.Now().Add(time.Second * 3)
+		return m, nil
+
+	case TickMsg:goCover_bed35bb5f610__3[9] = 1;
+		return m.handleTick(msg)
+
+	default:goCover_bed35bb5f610__3[10] = 1;
+		return m, nil
+	}
+}
+
+// View는 Bubbletea 뷰 함수입니다.
+func (m Model) View() string {goCover_bed35bb5f610__4[0] = 7 ; goCover_bed35bb5f610__4[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__4[2] = 4 ; goCover_bed35bb5f610__4[3] = 1;
+	// 실제 뷰 렌더링은 별도 파일에서 처리
+	// 여기서는 뷰 모드에 따른 디스패치만 수행
+	switch m.ViewMode {
+	case ViewModeMain:goCover_bed35bb5f610__4[4] = 1;
+		return m.renderMainView()
+	case ViewModeSearch:goCover_bed35bb5f610__4[5] = 1;
+		return m.renderSearchView()
+	case ViewModeConfirmKill:goCover_bed35bb5f610__4[6] = 1;
+		return m.renderConfirmKillView()
+	case ViewModeHistory:goCover_bed35bb5f610__4[7] = 1;
+		return m.renderHistoryView()
+	case ViewModeHelp:goCover_bed35bb5f610__4[8] = 1;
+		return m.renderHelpView()
+	default:goCover_bed35bb5f610__4[9] = 1;
+		return "Unknown view mode"
+	}
+}
+
+// ========== 메시지 타입 정의 ==========
+
+// PortsScannedMsg는 포트 스캔 완료 메시지입니다.
+type PortsScannedMsg struct {
+	Ports     []models.PortInfo
+	ScannedAt time.Time
+	Error     error
+}
+
+// PortKilledMsg는 프로세스 종료 완료 메시지입니다.
+type PortKilledMsg struct {
+	Port    models.PortInfo
+	Success bool
+	Message string
+}
+
+// StatusMsg는 상태 메시지입니다.
+type StatusMsg struct {
+	Message string
+}
+
+// TickMsg는 주기적 틱 메시지입니다.
+type TickMsg struct {
+	Time time.Time
+}
+
+// ========== 메시지 핸들러 ==========
+
+// handleKeyMsg는 키 입력을 처리합니다.
+func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__5[0] = 7 ; goCover_bed35bb5f610__5[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__5[2] = 5 ; goCover_bed35bb5f610__5[3] = 1;
+	// 뷰 모드에 따른 키 처리 분기
+	switch m.ViewMode {
+	case ViewModeMain:goCover_bed35bb5f610__5[4] = 1;
+		return m.handleMainKeyMsg(msg)
+	case ViewModeSearch:goCover_bed35bb5f610__5[5] = 1;
+		return m.handleSearchKeyMsg(msg)
+	case ViewModeConfirmKill:goCover_bed35bb5f610__5[6] = 1;
+		return m.handleConfirmKeyMsg(msg)
+	case ViewModeHistory:goCover_bed35bb5f610__5[7] = 1;
+		return m.handleHistoryKeyMsg(msg)
+	case ViewModeHelp:goCover_bed35bb5f610__5[8] = 1;
+		return m.handleHelpKeyMsg(msg)
+	default:goCover_bed35bb5f610__5[9] = 1;
+		return m, nil
+	}
+}
+
+// handlePortsScanned는 포트 스캔 완료를 처리합니다.
+func (m Model) handlePortsScanned(msg PortsScannedMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__6[0] = 5 ; goCover_bed35bb5f610__6[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__6[2] = 6 ; goCover_bed35bb5f610__6[3] = 1;
+	if msg.Error != nil {goCover_bed35bb5f610__6[6] = 1;
+		m.Err = msg.Error
+		m.Loading = false
+		return m, nil
+	}
+
+	goCover_bed35bb5f610__6[4] = 1;m.Ports = msg.Ports
+	m.FilteredPorts = msg.Ports
+	m.LastScanTime = msg.ScannedAt
+	m.Loading = false
+
+	// 선택 인덱스 초기화
+	if len(m.FilteredPorts) > 0 && m.SelectedIndex < 0 {goCover_bed35bb5f610__6[7] = 1;
+		m.SelectedIndex = 0
+	}
+
+	goCover_bed35bb5f610__6[5] = 1;return m, nil
+}
+
+// handlePortKilled는 프로세스 종료 완료를 처리합니다.
+func (m Model) handlePortKilled(msg PortKilledMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__7[0] = 6 ; goCover_bed35bb5f610__7[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__7[2] = 7 ; goCover_bed35bb5f610__7[3] = 1;
+	m.ViewMode = ViewModeMain
+
+	var statusCmd tea.Cmd
+	if msg.Success {goCover_bed35bb5f610__7[5] = 1;
+		statusCmd = func() tea.Msg {goCover_bed35bb5f610__7[6] = 1;
+			return StatusMsg{Message: "포트 " + msg.Port.ProcessName + " 종료 완료"}
+		}
+	} else{ goCover_bed35bb5f610__7[7] = 1;{
+		statusCmd = func() tea.Msg {goCover_bed35bb5f610__7[8] = 1;
+			return StatusMsg{Message: "종료 실패: " + msg.Message}
+		}
+	}}
+
+	goCover_bed35bb5f610__7[4] = 1;return m, statusCmd
+}
+
+// handleTick은 틱 메시지를 처리합니다.
+func (m Model) handleTick(msg TickMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__8[0] = 3 ; goCover_bed35bb5f610__8[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__8[2] = 8 ; goCover_bed35bb5f610__8[3] = 1;
+	// 상태 메시지 만료 확인
+	if !m.StatusMessageTimeout.IsZero() && time.Now().After(m.StatusMessageTimeout) {goCover_bed35bb5f610__8[5] = 1;
+		m.StatusMessage = ""
+		m.StatusMessageTimeout = time.Time{}
+	}
+
+	goCover_bed35bb5f610__8[4] = 1;return m, nil
+}
+
+// ========== 뷰 렌더러 ==========
+
+// renderMainView는 메인 뷰를 렌더링합니다.
+func (m Model) renderMainView() string {goCover_bed35bb5f610__9[0] = 1 ; goCover_bed35bb5f610__9[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__9[2] = 9 ; goCover_bed35bb5f610__9[3] = 1;
+	// 실제 구현은 view.go에서
+	return "main view"
+}
+
+// renderSearchView는 검색 뷰를 렌더링합니다.
+func (m Model) renderSearchView() string {goCover_bed35bb5f610__10[0] = 1 ; goCover_bed35bb5f610__10[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__10[2] = 10 ; goCover_bed35bb5f610__10[3] = 1;
+	return "search view"
+}
+
+// renderConfirmKillView는 종료 확인 뷰를 렌더링합니다.
+func (m Model) renderConfirmKillView() string {goCover_bed35bb5f610__11[0] = 1 ; goCover_bed35bb5f610__11[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__11[2] = 11 ; goCover_bed35bb5f610__11[3] = 1;
+	return "confirm kill view"
+}
+
+// renderHistoryView는 히스토리 뷰를 렌더링합니다.
+func (m Model) renderHistoryView() string {goCover_bed35bb5f610__12[0] = 1 ; goCover_bed35bb5f610__12[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__12[2] = 12 ; goCover_bed35bb5f610__12[3] = 1;
+	return "history view"
+}
+
+// renderHelpView는 도움말 뷰를 렌더링합니다.
+func (m Model) renderHelpView() string {goCover_bed35bb5f610__13[0] = 1 ; goCover_bed35bb5f610__13[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__13[2] = 13 ; goCover_bed35bb5f610__13[3] = 1;
+	return "help view"
+}
+
+// ========== 키 핸들러 ==========
+
+// handleMainKeyMsg는 메인 뷰 키 입력을 처리합니다.
+func (m Model) handleMainKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__14[0] = 15 ; goCover_bed35bb5f610__14[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__14[2] = 14 ; goCover_bed35bb5f610__14[3] = 1;
+	switch msg.String() {
+	case "q", "ctrl+c":goCover_bed35bb5f610__14[5] = 1;
+		m.Quit = true
+		return m, tea.Quit
+
+	case "up", "k":goCover_bed35bb5f610__14[6] = 1;
+		m.moveSelection(-1)
+		return m, nil
+
+	case "down", "j":goCover_bed35bb5f610__14[7] = 1;
+		m.moveSelection(1)
+		return m, nil
+
+	case "g":goCover_bed35bb5f610__14[8] = 1;
+		// gg 처리를 위한 상태 필요
+		m.SelectedIndex = 0
+		return m, nil
+
+	case "G":goCover_bed35bb5f610__14[9] = 1;
+		m.SelectedIndex = len(m.FilteredPorts) - 1
+		return m, nil
+
+	case "/":goCover_bed35bb5f610__14[10] = 1;
+		m.ViewMode = ViewModeSearch
+		return m, nil
+
+	case "enter":goCover_bed35bb5f610__14[11] = 1;
+		if m.isValidSelection() {goCover_bed35bb5f610__14[17] = 1;
+			m.ViewMode = ViewModeConfirmKill
+		}
+		goCover_bed35bb5f610__14[12] = 1;return m, nil
+
+	case "d":goCover_bed35bb5f610__14[13] = 1;
+		m.ShowDockerOnly = !m.ShowDockerOnly
+		m.applyFilters()
+		return m, nil
+
+	case "h":goCover_bed35bb5f610__14[14] = 1;
+		m.ViewMode = ViewModeHistory
+		return m, nil
+
+	case "?":goCover_bed35bb5f610__14[15] = 1;
+		m.ViewMode = ViewModeHelp
+		return m, nil
+
+	case "r", "ctrl+r":goCover_bed35bb5f610__14[16] = 1;
+		m.Loading = true
+		return m, m.scanPortsCmd()
+	}
+
+	goCover_bed35bb5f610__14[4] = 1;return m, nil
+}
+
+// handleSearchKeyMsg는 검색 뷰 키 입력을 처리합니다.
+func (m Model) handleSearchKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__15[0] = 6 ; goCover_bed35bb5f610__15[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__15[2] = 15 ; goCover_bed35bb5f610__15[3] = 1;
+	switch msg.String() {
+	case "esc":goCover_bed35bb5f610__15[6] = 1;
+		m.ViewMode = ViewModeMain
+		m.SearchQuery = ""
+		m.FilteredPorts = m.Ports
+		return m, nil
+
+	case "enter":goCover_bed35bb5f610__15[7] = 1;
+		m.ViewMode = ViewModeMain
+		return m, nil
+	}
+
+	// 문자 입력 처리
+	goCover_bed35bb5f610__15[4] = 1;if len(msg.String()) == 1 {goCover_bed35bb5f610__15[8] = 1;
+		m.SearchQuery += msg.String()
+		m.applyFilters()
+	}
+
+	goCover_bed35bb5f610__15[5] = 1;return m, nil
+}
+
+// handleConfirmKeyMsg는 확인 다이얼로그 키 입력을 처리합니다.
+func (m Model) handleConfirmKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__16[0] = 4 ; goCover_bed35bb5f610__16[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__16[2] = 16 ; goCover_bed35bb5f610__16[3] = 1;
+	switch msg.String() {
+	case "y", "Y":goCover_bed35bb5f610__16[5] = 1;
+		// 프로세스 종료 실행
+		return m, m.killPortCmd()
+
+	case "n", "N", "esc":goCover_bed35bb5f610__16[6] = 1;
+		m.ViewMode = ViewModeMain
+		m.KillConfirmationPort = nil
+		return m, nil
+	}
+
+	goCover_bed35bb5f610__16[4] = 1;return m, nil
+}
+
+// handleHistoryKeyMsg는 히스토리 뷰 키 입력을 처리합니다.
+func (m Model) handleHistoryKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__17[0] = 3 ; goCover_bed35bb5f610__17[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__17[2] = 17 ; goCover_bed35bb5f610__17[3] = 1;
+	switch msg.String() {
+	case "q", "esc", "h":goCover_bed35bb5f610__17[5] = 1;
+		m.ViewMode = ViewModeMain
+		return m, nil
+	}
+	goCover_bed35bb5f610__17[4] = 1;return m, nil
+}
+
+// handleHelpKeyMsg는 도움말 뷰 키 입력을 처리합니다.
+func (m Model) handleHelpKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {goCover_bed35bb5f610__18[0] = 3 ; goCover_bed35bb5f610__18[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__18[2] = 18 ; goCover_bed35bb5f610__18[3] = 1;
+	switch msg.String() {
+	case "q", "esc", "?":goCover_bed35bb5f610__18[5] = 1;
+		m.ViewMode = ViewModeMain
+		return m, nil
+	}
+	goCover_bed35bb5f610__18[4] = 1;return m, nil
+}
+
+// ========== 헬퍼 함수 ==========
+
+// moveSelection은 선택 인덱스를 이동합니다.
+func (m *Model) moveSelection(delta int) {goCover_bed35bb5f610__19[0] = 5 ; goCover_bed35bb5f610__19[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__19[2] = 19 ; goCover_bed35bb5f610__19[3] = 1;
+	newIndex := m.SelectedIndex + delta
+
+	// 경계 확인
+	if newIndex < 0 {goCover_bed35bb5f610__19[6] = 1;
+		newIndex = 0
+	}
+	goCover_bed35bb5f610__19[4] = 1;if newIndex >= len(m.FilteredPorts) {goCover_bed35bb5f610__19[7] = 1;
+		newIndex = len(m.FilteredPorts) - 1
+	}
+
+	goCover_bed35bb5f610__19[5] = 1;m.SelectedIndex = newIndex
+}
+
+// isValidSelection은 현재 선택이 유효한지 확인합니다.
+func (m Model) isValidSelection() bool {goCover_bed35bb5f610__20[0] = 1 ; goCover_bed35bb5f610__20[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__20[2] = 20 ; goCover_bed35bb5f610__20[3] = 1;
+	return m.SelectedIndex >= 0 && m.SelectedIndex < len(m.FilteredPorts)
+}
+
+// applyFilters는 현재 필터를 적용합니다.
+func (m *Model) applyFilters() {goCover_bed35bb5f610__21[0] = 14 ; goCover_bed35bb5f610__21[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__21[2] = 21 ; goCover_bed35bb5f610__21[3] = 1;
+	m.FilteredPorts = m.Ports
+
+	// Docker 필터 적용
+	if m.ShowDockerOnly {goCover_bed35bb5f610__21[6] = 1;
+		var dockerPorts []models.PortInfo
+		for _, port := range m.Ports {goCover_bed35bb5f610__21[8] = 1;
+			if port.IsDocker {goCover_bed35bb5f610__21[9] = 1;
+				dockerPorts = append(dockerPorts, port)
+			}
+		}
+		goCover_bed35bb5f610__21[7] = 1;m.FilteredPorts = dockerPorts
+	}
+
+	// 검색 필터 적용
+	goCover_bed35bb5f610__21[4] = 1;if m.SearchQuery != "" {goCover_bed35bb5f610__21[10] = 1;
+		var filtered []models.PortInfo
+		query := lowerString(m.SearchQuery)
+		for _, port := range m.FilteredPorts {goCover_bed35bb5f610__21[12] = 1;
+			if m.matchesSearch(port, query) {goCover_bed35bb5f610__21[13] = 1;
+				filtered = append(filtered, port)
+			}
+		}
+		goCover_bed35bb5f610__21[11] = 1;m.FilteredPorts = filtered
+	}
+
+	// 선택 인덱스 조정
+	goCover_bed35bb5f610__21[5] = 1;if len(m.FilteredPorts) > 0 {goCover_bed35bb5f610__21[14] = 1;
+		if m.SelectedIndex >= len(m.FilteredPorts) {goCover_bed35bb5f610__21[15] = 1;
+			m.SelectedIndex = len(m.FilteredPorts) - 1
+		}
+	} else{ goCover_bed35bb5f610__21[16] = 1;{
+		m.SelectedIndex = -1
+	}}
+}
+
+// matchesSearch는 포트가 검색어와 일치하는지 확인합니다.
+func (m Model) matchesSearch(port models.PortInfo, query string) bool {goCover_bed35bb5f610__22[0] = 9 ; goCover_bed35bb5f610__22[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__22[2] = 22 ; goCover_bed35bb5f610__22[3] = 1;
+	// 포트 번호 검색
+	portNum := intToString(port.PortNumber)
+	if contains(portNum, query) {goCover_bed35bb5f610__22[8] = 1;
+		return true
+	}
+
+	// 프로세스 이름 검색
+	goCover_bed35bb5f610__22[4] = 1;if contains(lowerString(port.ProcessName), query) {goCover_bed35bb5f610__22[9] = 1;
+		return true
+	}
+
+	// PID 검색
+	goCover_bed35bb5f610__22[5] = 1;pid := intToString(port.PID)
+	if contains(pid, query) {goCover_bed35bb5f610__22[10] = 1;
+		return true
+	}
+
+	// 컨테이너 이름 검색 (Docker인 경우)
+	goCover_bed35bb5f610__22[6] = 1;if port.IsDocker && contains(lowerString(port.ContainerName), query) {goCover_bed35bb5f610__22[11] = 1;
+		return true
+	}
+
+	goCover_bed35bb5f610__22[7] = 1;return false
+}
+
+// killPortCmd는 프로세스 종료 명령을 생성합니다.
+func (m Model) killPortCmd() tea.Cmd {goCover_bed35bb5f610__23[0] = 4 ; goCover_bed35bb5f610__23[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__23[2] = 23 ; goCover_bed35bb5f610__23[3] = 1;
+	if !m.isValidSelection() {goCover_bed35bb5f610__23[5] = 1;
+		return nil
+	}
+
+	goCover_bed35bb5f610__23[4] = 1;port := m.FilteredPorts[m.SelectedIndex]
+
+	return func() tea.Msg {goCover_bed35bb5f610__23[6] = 1;
+		// 실제 종료 로직은 Killer 인터페이스 사용
+		return PortKilledMsg{
+			Port:    port,
+			Success: true,
+			Message: "종료 완료",
+		}
+	}
+}
+
+// ========== 유틸리티 함수 ==========
+
+func lowerString(s string) string {goCover_bed35bb5f610__24[0] = 1 ; goCover_bed35bb5f610__24[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__24[2] = 24 ; goCover_bed35bb5f610__24[3] = 1;
+	// 소문자 변환 (간단 구현)
+	return s
+}
+
+func contains(s, substr string) bool {goCover_bed35bb5f610__25[0] = 1 ; goCover_bed35bb5f610__25[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__25[2] = 25 ; goCover_bed35bb5f610__25[3] = 1;
+	return len(s) >= len(substr) && s[:len(substr)] == substr
+}
+
+func intToString(i int) string {goCover_bed35bb5f610__26[0] = 3 ; goCover_bed35bb5f610__26[1] = goCover_bed35bb5f610_P ; goCover_bed35bb5f610__26[2] = 26 ; goCover_bed35bb5f610__26[3] = 1;
+	// 정수를 문자열로 변환 (간단 구현)
+	var result string
+	for i > 0 {goCover_bed35bb5f610__26[5] = 1;
+		result = string(rune('0'+i%10)) + result
+		i /= 10
+	}
+	goCover_bed35bb5f610__26[4] = 1;return result
+}

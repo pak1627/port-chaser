@@ -1,0 +1,102 @@
+=== RUN   TestNewManager
+--- PASS: TestNewManager (0.00s)
+=== RUN   TestManager_GetOS
+--- PASS: TestManager_GetOS (0.00s)
+=== RUN   TestManager_GetArch
+--- PASS: TestManager_GetArch (0.00s)
+=== RUN   TestManager_IsDarwin
+--- PASS: TestManager_IsDarwin (0.00s)
+=== RUN   TestManager_IsLinux
+--- PASS: TestManager_IsLinux (0.00s)
+=== RUN   TestManager_IsWindows
+--- PASS: TestManager_IsWindows (0.00s)
+=== RUN   TestManager_SignalName
+=== RUN   TestManager_SignalName/SIGHUP
+=== RUN   TestManager_SignalName/SIGINT
+=== RUN   TestManager_SignalName/SIGQUIT
+=== RUN   TestManager_SignalName/SIGILL
+=== RUN   TestManager_SignalName/SIGTRAP
+=== RUN   TestManager_SignalName/SIGABRT
+=== RUN   TestManager_SignalName/SIGBUS
+=== RUN   TestManager_SignalName/SIGFPE
+=== RUN   TestManager_SignalName/SIGKILL
+=== RUN   TestManager_SignalName/SIGUSR1
+=== RUN   TestManager_SignalName/SIGSEGV
+=== RUN   TestManager_SignalName/SIGUSR2
+=== RUN   TestManager_SignalName/SIGPIPE
+=== RUN   TestManager_SignalName/SIGALRM
+=== RUN   TestManager_SignalName/SIGTERM
+=== RUN   TestManager_SignalName/SIGSTKFLT
+=== RUN   TestManager_SignalName/SIGCHLD
+=== RUN   TestManager_SignalName/SIGCONT
+=== RUN   TestManager_SignalName/SIGSTOP
+=== RUN   TestManager_SignalName/SIGTSTP
+=== RUN   TestManager_SignalName/SIGTTIN
+=== RUN   TestManager_SignalName/SIGTTOU
+=== RUN   TestManager_SignalName/SIGURG
+=== RUN   TestManager_SignalName/SIGXCPU
+=== RUN   TestManager_SignalName/SIGXFSZ
+=== RUN   TestManager_SignalName/SIGVTALRM
+=== RUN   TestManager_SignalName/SIGPROF
+=== RUN   TestManager_SignalName/SIGWINCH
+=== RUN   TestManager_SignalName/SIGIO
+=== RUN   TestManager_SignalName/SIGPWR
+=== RUN   TestManager_SignalName/SIGSYS
+--- PASS: TestManager_SignalName (0.00s)
+    --- PASS: TestManager_SignalName/SIGHUP (0.00s)
+    --- PASS: TestManager_SignalName/SIGINT (0.00s)
+    --- PASS: TestManager_SignalName/SIGQUIT (0.00s)
+    --- PASS: TestManager_SignalName/SIGILL (0.00s)
+    --- PASS: TestManager_SignalName/SIGTRAP (0.00s)
+    --- PASS: TestManager_SignalName/SIGABRT (0.00s)
+    --- PASS: TestManager_SignalName/SIGBUS (0.00s)
+    --- PASS: TestManager_SignalName/SIGFPE (0.00s)
+    --- PASS: TestManager_SignalName/SIGKILL (0.00s)
+    --- PASS: TestManager_SignalName/SIGUSR1 (0.00s)
+    --- PASS: TestManager_SignalName/SIGSEGV (0.00s)
+    --- PASS: TestManager_SignalName/SIGUSR2 (0.00s)
+    --- PASS: TestManager_SignalName/SIGPIPE (0.00s)
+    --- PASS: TestManager_SignalName/SIGALRM (0.00s)
+    --- PASS: TestManager_SignalName/SIGTERM (0.00s)
+    --- PASS: TestManager_SignalName/SIGSTKFLT (0.00s)
+    --- PASS: TestManager_SignalName/SIGCHLD (0.00s)
+    --- PASS: TestManager_SignalName/SIGCONT (0.00s)
+    --- PASS: TestManager_SignalName/SIGSTOP (0.00s)
+    --- PASS: TestManager_SignalName/SIGTSTP (0.00s)
+    --- PASS: TestManager_SignalName/SIGTTIN (0.00s)
+    --- PASS: TestManager_SignalName/SIGTTOU (0.00s)
+    --- PASS: TestManager_SignalName/SIGURG (0.00s)
+    --- PASS: TestManager_SignalName/SIGXCPU (0.00s)
+    --- PASS: TestManager_SignalName/SIGXFSZ (0.00s)
+    --- PASS: TestManager_SignalName/SIGVTALRM (0.00s)
+    --- PASS: TestManager_SignalName/SIGPROF (0.00s)
+    --- PASS: TestManager_SignalName/SIGWINCH (0.00s)
+    --- PASS: TestManager_SignalName/SIGIO (0.00s)
+    --- PASS: TestManager_SignalName/SIGPWR (0.00s)
+    --- PASS: TestManager_SignalName/SIGSYS (0.00s)
+=== RUN   TestManager_HomeDir
+--- PASS: TestManager_HomeDir (0.00s)
+=== RUN   TestManager_ConfigDir
+--- PASS: TestManager_ConfigDir (0.00s)
+=== RUN   TestManager_DataDir
+--- PASS: TestManager_DataDir (0.00s)
+=== RUN   TestGetAppName
+--- PASS: TestGetAppName (0.00s)
+=== RUN   TestGetConfigPath
+--- PASS: TestGetConfigPath (0.00s)
+=== RUN   TestGetDataPath
+--- PASS: TestGetDataPath (0.00s)
+=== RUN   TestGetHistoryPath
+--- PASS: TestGetHistoryPath (0.00s)
+=== RUN   TestNormalizePath
+=== RUN   TestNormalizePath/tilde_경로
+=== RUN   TestNormalizePath/상대_경로
+=== RUN   TestNormalizePath/현재_디렉토리
+--- PASS: TestNormalizePath (0.00s)
+    --- PASS: TestNormalizePath/tilde_경로 (0.00s)
+    --- PASS: TestNormalizePath/상대_경로 (0.00s)
+    --- PASS: TestNormalizePath/현재_디렉토리 (0.00s)
+=== RUN   TestManager_SignalName_Unknown
+--- PASS: TestManager_SignalName_Unknown (0.00s)
+PASS
+ok  	github.com/manson/port-chaser/internal/platform	0.449s

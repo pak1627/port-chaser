@@ -1,0 +1,26 @@
+=== RUN   TestDefaultPortSorter_SortByCommonPort
+--- PASS: TestDefaultPortSorter_SortByCommonPort (0.00s)
+=== RUN   TestDefaultPortSorter_SortByPortNumber
+--- PASS: TestDefaultPortSorter_SortByPortNumber (0.00s)
+=== RUN   TestDefaultPortSorter_EmptyPorts
+--- PASS: TestDefaultPortSorter_EmptyPorts (0.00s)
+=== RUN   TestScanResult_NewScanResult
+--- PASS: TestScanResult_NewScanResult (0.00s)
+=== RUN   TestScanResult_HasDocker
+=== RUN   TestScanResult_HasDocker/Docker_포트_포함
+=== RUN   TestScanResult_HasDocker/Docker_포트_없음
+=== RUN   TestScanResult_HasDocker/빈_목록
+--- PASS: TestScanResult_HasDocker (0.00s)
+    --- PASS: TestScanResult_HasDocker/Docker_포트_포함 (0.00s)
+    --- PASS: TestScanResult_HasDocker/Docker_포트_없음 (0.00s)
+    --- PASS: TestScanResult_HasDocker/빈_목록 (0.00s)
+=== RUN   TestScanResult_FilteredPorts
+--- PASS: TestScanResult_FilteredPorts (0.00s)
+=== RUN   TestScanResult_DockerPorts
+--- PASS: TestScanResult_DockerPorts (0.00s)
+=== RUN   TestScanResult_RecommendedPorts
+--- PASS: TestScanResult_RecommendedPorts (0.00s)
+=== RUN   TestScanResult_SystemPorts
+--- PASS: TestScanResult_SystemPorts (0.00s)
+PASS
+ok  	github.com/manson/port-chaser/internal/scanner	0.649s

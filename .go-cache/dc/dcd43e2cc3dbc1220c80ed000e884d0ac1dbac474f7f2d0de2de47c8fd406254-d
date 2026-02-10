@@ -1,0 +1,3 @@
+./sqlite.go
+./storage.go
+./sqlite_test.go

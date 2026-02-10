@@ -1,0 +1,79 @@
+//line /Users/manson/opensource/port-chaser/internal/ui/components/header.go:1:1
+// Package components는 헤더 컴포넌트를 제공합니다.
+package components
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/manson/port-chaser/internal/ui"
+)
+
+// Header는 TUI 헤더 컴포넌트입니다.
+type Header struct {
+	styles *ui.Styles
+	title  string
+}
+
+// NewHeader는 새로운 Header를 생성합니다.
+func NewHeader(styles *ui.Styles, title string) *Header {goCover_4a1c223443af__4[0] = 1 ; goCover_4a1c223443af__4[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__4[2] = 4 ; goCover_4a1c223443af__4[3] = 1;
+	return &Header{
+		styles: styles,
+		title:  title,
+	}
+}
+
+// Render는 헤더를 렌더링합니다.
+func (h *Header) Render(portCount int, showDockerOnly bool, width int) string {goCover_4a1c223443af__5[0] = 1 ; goCover_4a1c223443af__5[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__5[2] = 5 ; goCover_4a1c223443af__5[3] = 1;
+	// 제목 라인
+	titleLine := h.renderTitleLine(portCount, showDockerOnly)
+
+	// 경계선
+	divider := strings.Repeat("─", width-2) // 좌우 패딩 고려
+
+	return h.styles.Header.Render(titleLine + "\n" + divider)
+}
+
+// renderTitleLine은 제목 라인을 렌더링합니다.
+func (h *Header) renderTitleLine(portCount int, showDockerOnly bool) string {goCover_4a1c223443af__6[0] = 6 ; goCover_4a1c223443af__6[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__6[2] = 6 ; goCover_4a1c223443af__6[3] = 1;
+	// 제목
+	title := h.styles.HeaderTitle.Render(h.title)
+
+	// 포트 수
+	portText := fmt.Sprintf("%d개 포트", portCount)
+	portCountDisplay := h.styles.HeaderSubtitle.Render(portText)
+
+	// Docker 필터 상태
+	var filterDisplay string
+	if showDockerOnly {goCover_4a1c223443af__6[6] = 1;
+		filterDisplay = h.styles.DockerMarker.Render("[Docker만]")
+	} else{ goCover_4a1c223443af__6[7] = 1;{
+		filterDisplay = h.styles.Muted.Render("[전체]")
+	}}
+
+	// 도움말 힌트
+	goCover_4a1c223443af__6[4] = 1;helpHint := h.styles.StatusKey.Render("[?]")
+
+	// 조립
+	left := title + " " + portCountDisplay + " " + filterDisplay
+	right := helpHint
+
+	// 중간 공백 계산
+	availableWidth := 80 // 기준 너비
+	leftWidth := len(left)
+	rightWidth := len(right)
+	padding := availableWidth - leftWidth - rightWidth
+
+	if padding < 1 {goCover_4a1c223443af__6[8] = 1;
+		padding = 1
+	}
+
+	goCover_4a1c223443af__6[5] = 1;middle := strings.Repeat(" ", padding)
+
+	return left + middle + right
+}
+
+// SetTitle은 헤더 제목을 설정합니다.
+func (h *Header) SetTitle(title string) {goCover_4a1c223443af__7[0] = 1 ; goCover_4a1c223443af__7[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__7[2] = 7 ; goCover_4a1c223443af__7[3] = 1;
+	h.title = title
+}

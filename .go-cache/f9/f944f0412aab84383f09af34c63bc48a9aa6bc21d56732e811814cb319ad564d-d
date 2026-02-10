@@ -1,0 +1,150 @@
+//line /Users/manson/opensource/port-chaser/internal/ui/components/search.go:1:1
+// Package components는 검색 컴포넌트를 제공합니다.
+package components
+
+import (
+	"strings"
+
+	"github.com/manson/port-chaser/internal/ui"
+)
+
+// Search는 검색 입력 컴포넌트입니다.
+type Search struct {
+	styles   *ui.Styles
+	query    string
+	focused  bool
+	cursor   int
+}
+
+// NewSearch는 새로운 Search를 생성합니다.
+func NewSearch(styles *ui.Styles) *Search {goCover_4a1c223443af__21[0] = 1 ; goCover_4a1c223443af__21[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__21[2] = 21 ; goCover_4a1c223443af__21[3] = 1;
+	return &Search{
+		styles:  styles,
+		query:   "",
+		focused: false,
+		cursor:  0,
+	}
+}
+
+// Render는 검색 입력을 렌더링합니다.
+func (s *Search) Render(width int) string {goCover_4a1c223443af__22[0] = 1 ; goCover_4a1c223443af__22[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__22[2] = 22 ; goCover_4a1c223443af__22[3] = 1;
+	// 프롬프트
+	prompt := s.styles.SearchPrompt.Render("🔍 /")
+
+	// 입력 필드
+	input := s.renderInput(width - len(prompt))
+
+	// 결과 수
+	resultText := s.styles.StatusDim.Render(fmt.Sprintf("[%d개 결과]", s.resultCount))
+
+	return prompt + " " + input + " " + resultText
+}
+
+// renderInput은 입력 필드를 렌더링합니다.
+func (s *Search) renderInput(width int) string {goCover_4a1c223443af__23[0] = 6 ; goCover_4a1c223443af__23[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__23[2] = 23 ; goCover_4a1c223443af__23[3] = 1;
+	if s.query == "" {goCover_4a1c223443af__23[6] = 1;
+		// 플레이스홀더
+		placeholder := s.styles.StatusDim.Render("검색어 입력...")
+		return placeholder
+	}
+
+	// 쿼리 텍스트
+	goCover_4a1c223443af__23[4] = 1;queryText := s.query
+
+	// 커서 위치
+	cursorStr := ""
+	if s.focused && s.cursor >= 0 && s.cursor <= len(queryText) {goCover_4a1c223443af__23[7] = 1;
+		before := queryText[:s.cursor]
+		after := queryText[s.cursor:]
+		cursorStr = before + "▏" + after
+	} else{ goCover_4a1c223443af__23[8] = 1;{
+		cursorStr = queryText
+	}}
+
+	goCover_4a1c223443af__23[5] = 1;return s.styles.SearchInput.Render(cursorStr)
+}
+
+// SetQuery는 검색어를 설정합니다.
+func (s *Search) SetQuery(query string) {goCover_4a1c223443af__24[0] = 1 ; goCover_4a1c223443af__24[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__24[2] = 24 ; goCover_4a1c223443af__24[3] = 1;
+	s.query = query
+	s.cursor = len(query)
+}
+
+// GetQuery는 검색어를 반환합니다.
+func (s *Search) GetQuery() string {goCover_4a1c223443af__25[0] = 1 ; goCover_4a1c223443af__25[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__25[2] = 25 ; goCover_4a1c223443af__25[3] = 1;
+	return s.query
+}
+
+// AppendChar는 문자를 추가합니다.
+func (s *Search) AppendChar(char string) {goCover_4a1c223443af__26[0] = 1 ; goCover_4a1c223443af__26[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__26[2] = 26 ; goCover_4a1c223443af__26[3] = 1;
+	s.query = s.query[:s.cursor] + char + s.query[s.cursor:]
+	s.cursor++
+}
+
+// DeleteChar는 문자를 삭제합니다.
+func (s *Search) DeleteChar() {goCover_4a1c223443af__27[0] = 2 ; goCover_4a1c223443af__27[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__27[2] = 27 ; goCover_4a1c223443af__27[3] = 1;
+	if s.cursor > 0 && len(s.query) > 0 {goCover_4a1c223443af__27[4] = 1;
+		s.query = s.query[:s.cursor-1] + s.query[s.cursor:]
+		s.cursor--
+	}
+}
+
+// MoveCursor는 커서를 이동합니다.
+func (s *Search) MoveCursor(delta int) {goCover_4a1c223443af__28[0] = 2 ; goCover_4a1c223443af__28[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__28[2] = 28 ; goCover_4a1c223443af__28[3] = 1;
+	newCursor := s.cursor + delta
+	if newCursor >= 0 && newCursor <= len(s.query) {goCover_4a1c223443af__28[4] = 1;
+		s.cursor = newCursor
+	}
+}
+
+// SetFocused는 포커스 상태를 설정합니다.
+func (s *Search) SetFocused(focused bool) {goCover_4a1c223443af__29[0] = 1 ; goCover_4a1c223443af__29[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__29[2] = 29 ; goCover_4a1c223443af__29[3] = 1;
+	s.focused = focused
+}
+
+// Clear는 검색어를 지웁니다.
+func (s *Search) Clear() {goCover_4a1c223443af__30[0] = 1 ; goCover_4a1c223443af__30[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__30[2] = 30 ; goCover_4a1c223443af__30[3] = 1;
+	s.query = ""
+	s.cursor = 0
+}
+
+// resultCount는 결과 수를 계산합니다.
+func (s *Search) resultCount() int {goCover_4a1c223443af__31[0] = 1 ; goCover_4a1c223443af__31[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__31[2] = 31 ; goCover_4a1c223443af__31[3] = 1;
+	// 실제 구현에서는 전달받은 필터링 결과 수를 사용
+	return 0
+}
+
+// Placeholder는 다른 패키지에서 사용할 수 있는 구조체입니다.
+type Placeholder struct {
+	styles   *ui.Styles
+	query    string
+	resultCount int
+}
+
+// NewPlaceholder는 새로운 Placeholder를 생성합니다.
+func NewPlaceholder(styles *ui.Styles) *Placeholder {goCover_4a1c223443af__32[0] = 1 ; goCover_4a1c223443af__32[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__32[2] = 32 ; goCover_4a1c223443af__32[3] = 1;
+	return &Placeholder{
+		styles:   styles,
+		query:    "",
+		resultCount: 0,
+	}
+}
+
+// SetQuery는 검색어를 설정합니다.
+func (p *Placeholder) SetQuery(query string) {goCover_4a1c223443af__33[0] = 1 ; goCover_4a1c223443af__33[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__33[2] = 33 ; goCover_4a1c223443af__33[3] = 1;
+	p.query = query
+}
+
+// SetResultCount는 결과 수를 설정합니다.
+func (p *Placeholder) SetResultCount(count int) {goCover_4a1c223443af__34[0] = 1 ; goCover_4a1c223443af__34[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__34[2] = 34 ; goCover_4a1c223443af__34[3] = 1;
+	p.resultCount = count
+}
+
+// Render는 검색 바를 렌더링합니다.
+func (p *Placeholder) Render(width int) string {goCover_4a1c223443af__35[0] = 1 ; goCover_4a1c223443af__35[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__35[2] = 35 ; goCover_4a1c223443af__35[3] = 1;
+	prompt := p.styles.SearchPrompt.Render("/")
+	input := p.styles.SearchInput.Render(p.query)
+	result := p.styles.StatusDim.Render(fmt.Sprintf("[%d개]", p.resultCount))
+
+	return prompt + " " + input + " " + result
+}

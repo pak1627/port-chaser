@@ -1,0 +1,10 @@
+=== RUN   TestMockDetector_Detect
+--- PASS: TestMockDetector_Detect (0.00s)
+=== RUN   TestMockDetector_DetectEmpty
+--- PASS: TestMockDetector_DetectEmpty (0.00s)
+=== RUN   TestMockDetector_IsAvailable
+--- PASS: TestMockDetector_IsAvailable (0.00s)
+=== RUN   TestEnrichPortInfo
+--- PASS: TestEnrichPortInfo (0.00s)
+PASS
+ok  	github.com/manson/port-chaser/internal/detector	0.244s

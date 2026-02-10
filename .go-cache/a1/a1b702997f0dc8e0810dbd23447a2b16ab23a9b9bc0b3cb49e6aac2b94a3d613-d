@@ -1,0 +1,5 @@
+covervars.go
+killer.cover.go
+killer_posix.cover.go
+./integration_test.go
+./killer_test.go

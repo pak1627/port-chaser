@@ -1,0 +1,169 @@
+//line /Users/manson/opensource/port-chaser/internal/ui/components/port_list.go:1:1
+// Package components는 TUI 컴포넌트를 제공합니다.
+package components
+
+import (
+	"strings"
+
+	"github.com/manson/port-chaser/internal/models"
+	"github.com/manson/port-chaser/internal/ui"
+)
+
+// PortList는 포트 목록 컴포넌트입니다.
+type PortList struct {
+	styles *ui.Styles
+}
+
+// NewPortList는 새로운 PortList를 생성합니다.
+func NewPortList(styles *ui.Styles) *PortList {goCover_4a1c223443af__8[0] = 1 ; goCover_4a1c223443af__8[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__8[2] = 8 ; goCover_4a1c223443af__8[3] = 1;
+	return &PortList{
+		styles: styles,
+	}
+}
+
+// Render는 포트 목록을 렌더링합니다.
+func (pl *PortList) Render(ports []models.PortInfo, selectedIndex int, width int) string {goCover_4a1c223443af__9[0] = 5 ; goCover_4a1c223443af__9[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__9[2] = 9 ; goCover_4a1c223443af__9[3] = 1;
+	if len(ports) == 0 {goCover_4a1c223443af__9[6] = 1;
+		return pl.renderEmpty()
+	}
+
+	goCover_4a1c223443af__9[4] = 1;var sb strings.Builder
+
+	// 포트 헤더
+	sb.WriteString(pl.renderHeader())
+
+	// 포트 항목
+	for i, port := range ports {goCover_4a1c223443af__9[7] = 1;
+	 isSelected := i == selectedIndex
+		sb.WriteString(pl.renderPortItem(port, isSelected))
+	}
+
+	goCover_4a1c223443af__9[5] = 1;return sb.String()
+}
+
+// renderEmpty는 빈 목록 메시지를 렌더링합니다.
+func (pl *PortList) renderEmpty() string {goCover_4a1c223443af__10[0] = 1 ; goCover_4a1c223443af__10[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__10[2] = 10 ; goCover_4a1c223443af__10[3] = 1;
+	return pl.styles.Muted.Render("  활성 포트가 없습니다")
+}
+
+// renderHeader는 포트 목록 헤더를 렌더링합니다.
+func (pl *PortList) renderHeader() string {goCover_4a1c223443af__11[0] = 1 ; goCover_4a1c223443af__11[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__11[2] = 11 ; goCover_4a1c223443af__11[3] = 1;
+	// 포트 번호, 프로세스, PID, 사용자, 커맨드
+	header := "  포트    프로세스       PID     사용자    커맨드"
+	return pl.styles.Muted.Render(header)
+}
+
+// renderPortItem은 단일 포트 항목을 렌더링합니다.
+func (pl *PortList) renderPortItem(port models.PortInfo, isSelected bool) string {goCover_4a1c223443af__12[0] = 3 ; goCover_4a1c223443af__12[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__12[2] = 12 ; goCover_4a1c223443af__12[3] = 1;
+	// 마커 생성
+	markers := pl.renderMarkers(port)
+
+	// 포트 정보
+	portNum := pl.formatPortNumber(port.PortNumber)
+	processName := pl.formatProcessName(port.ProcessName, 16)
+	pid := pl.formatPID(port.PID)
+	user := pl.formatUser(port.User, 10)
+	command := pl.formatCommand(port.Command, 30)
+
+	// 라인 조립
+	line := strings.Join([]string{
+		markers,
+		portNum,
+		processName,
+		pid,
+		user,
+		command,
+	}, " ")
+
+	// 선택 상태에 따라 스타일 적용
+	if isSelected {goCover_4a1c223443af__12[5] = 1;
+		return pl.styles.PortSelected.Render(line)
+	}
+	goCover_4a1c223443af__12[4] = 1;return pl.styles.PortItem.Render(line)
+}
+
+// renderMarkers는 포트 마커를 렌더링합니다.
+func (pl *PortList) renderMarkers(port models.PortInfo) string {goCover_4a1c223443af__13[0] = 9 ; goCover_4a1c223443af__13[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__13[2] = 13 ; goCover_4a1c223443af__13[3] = 1;
+	var markers []string
+
+	if port.IsDocker {goCover_4a1c223443af__13[8] = 1;
+		markers = append(markers, ui.RenderDockerMarker(pl.styles))
+	}
+
+	goCover_4a1c223443af__13[4] = 1;if port.IsRecommended() {goCover_4a1c223443af__13[9] = 1;
+		markers = append(markers, ui.RenderRecommendedMarker(pl.styles))
+	}
+
+	goCover_4a1c223443af__13[5] = 1;if port.ShouldDisplayWarning() {goCover_4a1c223443af__13[10] = 1;
+		markers = append(markers, ui.RenderSystemMarker(pl.styles))
+	}
+
+	goCover_4a1c223443af__13[6] = 1;if len(markers) == 0 {goCover_4a1c223443af__13[11] = 1;
+		return "   " // 마커 없으면 공백
+	}
+
+	goCover_4a1c223443af__13[7] = 1;return strings.Join(markers, " ")
+}
+
+// formatPortNumber는 포트 번호를 포맷팅합니다.
+func (pl *PortList) formatPortNumber(portNum int) string {goCover_4a1c223443af__14[0] = 1 ; goCover_4a1c223443af__14[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__14[2] = 14 ; goCover_4a1c223443af__14[3] = 1;
+	s := intToString(portNum)
+	return padRight(s, 6)
+}
+
+// formatProcessName은 프로세스 이름을 포맷팅합니다.
+func (pl *PortList) formatProcessName(name string, maxWidth int) string {goCover_4a1c223443af__15[0] = 3 ; goCover_4a1c223443af__15[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__15[2] = 15 ; goCover_4a1c223443af__15[3] = 1;
+	if len(name) > maxWidth {goCover_4a1c223443af__15[5] = 1;
+		return name[:maxWidth-3] + "..."
+	}
+	goCover_4a1c223443af__15[4] = 1;return padRight(name, maxWidth)
+}
+
+// formatPID는 PID를 포맷팅합니다.
+func (pl *PortList) formatPID(pid int) string {goCover_4a1c223443af__16[0] = 1 ; goCover_4a1c223443af__16[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__16[2] = 16 ; goCover_4a1c223443af__16[3] = 1;
+	s := intToString(pid)
+	return padRight(s, 7)
+}
+
+// formatUser는 사용자 이름을 포맷팅합니다.
+func (pl *PortList) formatUser(user string, maxWidth int) string {goCover_4a1c223443af__17[0] = 5 ; goCover_4a1c223443af__17[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__17[2] = 17 ; goCover_4a1c223443af__17[3] = 1;
+	if user == "" {goCover_4a1c223443af__17[6] = 1;
+		user = "-"
+	}
+	goCover_4a1c223443af__17[4] = 1;if len(user) > maxWidth {goCover_4a1c223443af__17[7] = 1;
+		return user[:maxWidth]
+	}
+	goCover_4a1c223443af__17[5] = 1;return padRight(user, maxWidth)
+}
+
+// formatCommand는 커맨드를 포맷팅합니다.
+func (pl *PortList) formatCommand(command string, maxWidth int) string {goCover_4a1c223443af__18[0] = 5 ; goCover_4a1c223443af__18[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__18[2] = 18 ; goCover_4a1c223443af__18[3] = 1;
+	if command == "" {goCover_4a1c223443af__18[6] = 1;
+		return "-"
+	}
+	goCover_4a1c223443af__18[4] = 1;if len(command) > maxWidth {goCover_4a1c223443af__18[7] = 1;
+		return command[:maxWidth-3] + "..."
+	}
+	goCover_4a1c223443af__18[5] = 1;return command
+}
+
+// ========== 유틸리티 함수 ==========
+
+func padRight(s string, width int) string {goCover_4a1c223443af__19[0] = 3 ; goCover_4a1c223443af__19[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__19[2] = 19 ; goCover_4a1c223443af__19[3] = 1;
+	for len(s) < width {goCover_4a1c223443af__19[5] = 1;
+		s += " "
+	}
+	goCover_4a1c223443af__19[4] = 1;return s
+}
+
+func intToString(i int) string {goCover_4a1c223443af__20[0] = 5 ; goCover_4a1c223443af__20[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__20[2] = 20 ; goCover_4a1c223443af__20[3] = 1;
+	if i == 0 {goCover_4a1c223443af__20[6] = 1;
+		return "0"
+	}
+	goCover_4a1c223443af__20[4] = 1;var result string
+	for i > 0 {goCover_4a1c223443af__20[7] = 1;
+		result = string(rune('0'+i%10)) + result
+		i /= 10
+	}
+	goCover_4a1c223443af__20[5] = 1;return result
+}

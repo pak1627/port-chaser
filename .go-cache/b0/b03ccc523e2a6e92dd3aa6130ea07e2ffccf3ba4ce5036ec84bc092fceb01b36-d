@@ -1,0 +1,72 @@
+//line /Users/manson/opensource/port-chaser/internal/detector/docker.go:1:1
+// Package detector는 Docker 컨테이너 감지 기능을 제공합니다.
+package detector
+
+import (
+	"github.com/manson/port-chaser/internal/models"
+)
+
+// Detector는 Docker 컨테이너 감지 인터페이스입니다.
+type Detector interface {
+	// Detect는 포트 목록에서 Docker 컨테이너를 감지하고 정보를 강화합니다.
+	Detect(ports []models.PortInfo) ([]models.PortInfo, error)
+
+	// IsAvailable은 Docker 감지기가 사용 가능한지 확인합니다.
+	IsAvailable() bool
+}
+
+// MockDetector는 테스트용 모의 Docker 감지기입니다.
+type MockDetector struct {
+	available bool
+	dockerMap map[int]models.DockerInfo
+}
+
+// NewMockDetector는 새로운 MockDetector를 생성합니다.
+func NewMockDetector() *MockDetector {goCover_5c8ca83265e0__0[0] = 1 ; goCover_5c8ca83265e0__0[1] = goCover_5c8ca83265e0_P ; goCover_5c8ca83265e0__0[2] = 0 ; goCover_5c8ca83265e0__0[3] = 1;
+	return &MockDetector{
+		available: true,
+		dockerMap: make(map[int]models.DockerInfo),
+	}
+}
+
+// SetAvailable은 가용성을 설정합니다.
+func (m *MockDetector) SetAvailable(available bool) {goCover_5c8ca83265e0__1[0] = 1 ; goCover_5c8ca83265e0__1[1] = goCover_5c8ca83265e0_P ; goCover_5c8ca83265e0__1[2] = 1 ; goCover_5c8ca83265e0__1[3] = 1;
+	m.available = available
+}
+
+// SetDockerInfo는 포트 번호에 대한 Docker 정보를 설정합니다.
+func (m *MockDetector) SetDockerInfo(portNumber int, info models.DockerInfo) {goCover_5c8ca83265e0__2[0] = 1 ; goCover_5c8ca83265e0__2[1] = goCover_5c8ca83265e0_P ; goCover_5c8ca83265e0__2[2] = 2 ; goCover_5c8ca83265e0__2[3] = 1;
+	m.dockerMap[portNumber] = info
+}
+
+// Detect는 포트 목록에서 Docker 컨테이너를 감지합니다.
+func (m *MockDetector) Detect(ports []models.PortInfo) ([]models.PortInfo, error) {goCover_5c8ca83265e0__3[0] = 7 ; goCover_5c8ca83265e0__3[1] = goCover_5c8ca83265e0_P ; goCover_5c8ca83265e0__3[2] = 3 ; goCover_5c8ca83265e0__3[3] = 1;
+	if !m.available {goCover_5c8ca83265e0__3[6] = 1;
+		return ports, nil
+	}
+
+	goCover_5c8ca83265e0__3[4] = 1;result := make([]models.PortInfo, len(ports))
+	for i, port := range ports {goCover_5c8ca83265e0__3[7] = 1;
+		if dockerInfo, ok := m.dockerMap[port.PortNumber]; ok {goCover_5c8ca83265e0__3[8] = 1;
+			result[i] = EnrichPortInfo(port, dockerInfo)
+		} else{ goCover_5c8ca83265e0__3[9] = 1;{
+			result[i] = port
+		}}
+	}
+
+	goCover_5c8ca83265e0__3[5] = 1;return result, nil
+}
+
+// IsAvailable은 MockDetector가 사용 가능한지 확인합니다.
+func (m *MockDetector) IsAvailable() bool {goCover_5c8ca83265e0__4[0] = 1 ; goCover_5c8ca83265e0__4[1] = goCover_5c8ca83265e0_P ; goCover_5c8ca83265e0__4[2] = 4 ; goCover_5c8ca83265e0__4[3] = 1;
+	return m.available
+}
+
+// EnrichPortInfo는 포트 정보에 Docker 정보를 추가합니다.
+func EnrichPortInfo(port models.PortInfo, dockerInfo models.DockerInfo) models.PortInfo {goCover_5c8ca83265e0__5[0] = 1 ; goCover_5c8ca83265e0__5[1] = goCover_5c8ca83265e0_P ; goCover_5c8ca83265e0__5[2] = 5 ; goCover_5c8ca83265e0__5[3] = 1;
+	port.IsDocker = true
+	port.ContainerID = dockerInfo.ContainerID
+	port.ContainerName = dockerInfo.ContainerName
+	port.ImageName = dockerInfo.ImageName
+	return port
+}

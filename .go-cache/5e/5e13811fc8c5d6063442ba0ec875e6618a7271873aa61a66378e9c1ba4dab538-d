@@ -1,0 +1,46 @@
+//line /Users/manson/opensource/port-chaser/internal/process/killer_posix.go:1:1
+// +build darwin linux
+
+// Package process는 POSIX 시스템용 프로세스 종료 구현을 제공합니다.
+package process
+
+import (
+	"fmt"
+	"os"
+	"syscall"
+)
+
+// Process는 실행 중인 프로세스를 나타냅니다.
+type Process interface {
+	// Signal은 프로세스에 신호를 전송합니다.
+	Signal(sig syscall.Signal) error
+	// Release는 프로세스 리소스를 해제합니다.
+	Release() error
+}
+
+// osProcess는 표준 라이브러리의 os.Process 래퍼입니다.
+type osProcess struct {
+	*os.Process
+}
+
+// Release는 프로세스 리소스를 해제합니다.
+func (p *osProcess) Release() error {goCover_81b8ef95182c__8[0] = 1 ; goCover_81b8ef95182c__8[1] = goCover_81b8ef95182c_P ; goCover_81b8ef95182c__8[2] = 8 ; goCover_81b8ef95182c__8[3] = 1;
+	// os.Process는 명시적인 Release가 필요 없음
+	return nil
+}
+
+// Signal은 프로세스에 시스템 신호를 전송합니다.
+// os.Process.Signal은 os.Signal을 받지만, 우리는 syscall.Signal로 변환합니다.
+func (p *osProcess) Signal(sig syscall.Signal) error {goCover_81b8ef95182c__9[0] = 1 ; goCover_81b8ef95182c__9[1] = goCover_81b8ef95182c_P ; goCover_81b8ef95182c__9[2] = 9 ; goCover_81b8ef95182c__9[3] = 1;
+	// os.Process.Signal으로 전달 (os.Signal은 인터페이스, syscall.Signal은 int)
+	return p.Process.Signal(sig)
+}
+
+// findProcessImpl은 POSIX 시스템용 프로세스 찾기 구현입니다.
+func findProcessImpl(pid int) (Process, error) {goCover_81b8ef95182c__10[0] = 3 ; goCover_81b8ef95182c__10[1] = goCover_81b8ef95182c_P ; goCover_81b8ef95182c__10[2] = 10 ; goCover_81b8ef95182c__10[3] = 1;
+	process, err := os.FindProcess(pid)
+	if err != nil {goCover_81b8ef95182c__10[5] = 1;
+		return nil, fmt.Errorf("프로세스 찾기 실패 (PID %d): %w", pid, err)
+	}
+	goCover_81b8ef95182c__10[4] = 1;return &osProcess{Process: process}, nil
+}

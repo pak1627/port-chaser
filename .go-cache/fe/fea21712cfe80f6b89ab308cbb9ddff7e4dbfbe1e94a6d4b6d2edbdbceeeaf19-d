@@ -1,0 +1,88 @@
+//line /Users/manson/opensource/port-chaser/internal/ui/components/statusbar.go:1:1
+// Package components는 상태바 컴포넌트를 제공합니다.
+package components
+
+import (
+	"strings"
+
+	"github.com/manson/port-chaser/internal/ui"
+)
+
+// StatusBar는 TUI 하단 상태바 컴포넌트입니다.
+type StatusBar struct {
+	styles    *ui.Styles
+	bindings  *ui.KeyBindings
+	message   string
+	messageFn func() string
+}
+
+// NewStatusBar는 새로운 StatusBar를 생성합니다.
+func NewStatusBar(styles *ui.Styles, bindings *ui.KeyBindings) *StatusBar {goCover_4a1c223443af__36[0] = 1 ; goCover_4a1c223443af__36[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__36[2] = 36 ; goCover_4a1c223443af__36[3] = 1;
+	return &StatusBar{
+		styles:   styles,
+		bindings: bindings,
+	}
+}
+
+// Render는 상태바를 렌더링합니다.
+func (sb *StatusBar) Render(width int) string {goCover_4a1c223443af__37[0] = 5 ; goCover_4a1c223443af__37[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__37[2] = 37 ; goCover_4a1c223443af__37[3] = 1;
+	// 메시지가 있으면 메시지 표시
+	if sb.message != "" {goCover_4a1c223443af__37[6] = 1;
+		return sb.renderMessage(width)
+	}
+
+	// 메시지 함수가 있으면 실행
+	goCover_4a1c223443af__37[4] = 1;if sb.messageFn != nil {goCover_4a1c223443af__37[7] = 1;
+		sb.message = sb.messageFn()
+		sb.messageFn = nil // 일회성
+		return sb.renderMessage(width)
+	}
+
+	// 기본 키 바인딩 가이드
+	goCover_4a1c223443af__37[5] = 1;return sb.renderKeyGuide(width)
+}
+
+// renderMessage는 메시지를 렌더링합니다.
+func (sb *StatusBar) renderMessage(width int) string {goCover_4a1c223443af__38[0] = 1 ; goCover_4a1c223443af__38[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__38[2] = 38 ; goCover_4a1c223443af__38[3] = 1;
+	return sb.styles.StatusBar.Render(sb.message)
+}
+
+// renderKeyGuide는 키 바인딩 가이드를 렌더링합니다.
+func (sb *StatusBar) renderKeyGuide(width int) string {goCover_4a1c223443af__39[0] = 1 ; goCover_4a1c223443af__39[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__39[2] = 39 ; goCover_4a1c223443af__39[3] = 1;
+	help := []string{
+		sb.formatKey("↑", "j") + "/" + sb.formatKey("↓", "k") + ": 선택",
+		sb.formatKey("Enter") + ": 종료",
+		sb.formatKey("/") + ": 검색",
+		sb.formatKey("d") + ": Docker",
+		sb.formatKey("q") + ": 종료",
+	}
+
+	guide := strings.Join(help, " │ ")
+
+	return sb.styles.StatusBar.Render(guide)
+}
+
+// formatKey는 키 표시를 포맷팅합니다.
+func (sb *StatusBar) formatKey(keys ...string) string {goCover_4a1c223443af__40[0] = 3 ; goCover_4a1c223443af__40[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__40[2] = 40 ; goCover_4a1c223443af__40[3] = 1;
+	var formatted []string
+	for _, key := range keys {goCover_4a1c223443af__40[5] = 1;
+		formatted = append(formatted, sb.styles.StatusKey.Render(key))
+	}
+	goCover_4a1c223443af__40[4] = 1;return strings.Join(formatted, "/")
+}
+
+// SetMessage는 상태 메시지를 설정합니다.
+func (sb *StatusBar) SetMessage(message string) {goCover_4a1c223443af__41[0] = 1 ; goCover_4a1c223443af__41[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__41[2] = 41 ; goCover_4a1c223443af__41[3] = 1;
+	sb.message = message
+}
+
+// SetMessageFn은 상태 메시지 함수를 설정합니다 (일회성).
+func (sb *StatusBar) SetMessageFn(fn func() string) {goCover_4a1c223443af__42[0] = 1 ; goCover_4a1c223443af__42[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__42[2] = 42 ; goCover_4a1c223443af__42[3] = 1;
+	sb.messageFn = fn
+}
+
+// ClearMessage는 상태 메시지를 지웁니다.
+func (sb *StatusBar) ClearMessage() {goCover_4a1c223443af__43[0] = 1 ; goCover_4a1c223443af__43[1] = goCover_4a1c223443af_P ; goCover_4a1c223443af__43[2] = 43 ; goCover_4a1c223443af__43[3] = 1;
+	sb.message = ""
+	sb.messageFn = nil
+}
