@@ -3,17 +3,17 @@
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Port Chaser**는 개발자를 위한 TUI 기반 포트 관리 도구입니다. 로컬 시스템의 활성 포트를 실시간으로 표시하고, Docker 컨테이너를 자동 감지하며, 키보드 단축키로 빠르게 프로세스를 종료할 수 있습니다.
+**Port Chaser** is a Terminal UI (TUI) based port management tool for developers. It displays active ports on your local system in real-time, automatically detects Docker containers, and allows you to quickly terminate processes using keyboard shortcuts.
 
-## 주요 기능
+## Features
 
-- 실시간 포트 스캔 (2초 내)
-- Vim 스타일 키보드 내비게이션
-- Docker 컨테이너 자동 감지
-- 자주 종료하는 프로세스 자동 표시
-- SQLite 기반 종료 기록 관리
+- Real-time port scanning (within 2 seconds)
+- Vim-style keyboard navigation
+- Automatic Docker container detection
+- Smart recommendations for frequently terminated processes
+- SQLite-based termination history tracking
 
-## 설치
+## Installation
 
 ### Go install
 
@@ -28,7 +28,7 @@ brew tap manson/port-chaser
 brew install port-chaser
 ```
 
-### 소스에서 빌드
+### Build from source
 
 ```bash
 git clone https://github.com/manson/port-chaser.git
@@ -37,32 +37,31 @@ go build -o port-chaser ./cmd/port-chaser
 sudo mv port-chaser /usr/local/bin/
 ```
 
-## 사용법
+## Usage
 
 ```bash
 port-chaser
 ```
 
-### 키보드 단축키
+### Keyboard Shortcuts
 
-| 키 | 설명 |
-|-----|------|
-| `↑`/`k`, `↓`/`j` | 위/아래 이동 |
-| `gg`, `G` | 맨 위/맨 아래로 이동 |
-| `Enter` | 프로세스 종료 |
-| `/` | 검색 모드 |
-| `d` | Docker 필터 토글 |
-| `h` | 종료 기록 보기 |
-| `?` | 도움말 |
-| `r` | 새로고침 |
-| `q` | 종료 |
+| Key | Description |
+|-----|-------------|
+| `↑`/`k`, `↓`/`j` | Move up/down |
+| `gg`, `G` | Go to top/bottom |
+| `Enter` | Kill process |
+| `d` | Toggle Docker filter |
+| `h` | View history |
+| `?` | Help |
+| `r` | Refresh |
+| `q` | Quit |
 
-## 요구 사항
+## Requirements
 
 - Go 1.21+
-- macOS, Linux, 또는 Windows
-- Docker (선택, 컨테이너 감지용)
+- macOS, Linux, or Windows
+- Docker (optional, for container detection)
 
-## 라이선스
+## License
 
-MIT License - [LICENSE](LICENSE) 파일 참조
+MIT License - see the [LICENSE](LICENSE) file for details.
